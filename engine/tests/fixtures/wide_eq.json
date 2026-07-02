@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "title": "Wide Figures, Equations, and Tables in IEEE Format",
+    "authors": [
+      {
+        "name": "Carol White",
+        "affiliation_refs": ["1"],
+        "email": "carol@example.edu"
+      }
+    ],
+    "affiliations": [
+      {
+        "key": "1",
+        "institution": "Technical University",
+        "department": "Department of Electrical Engineering",
+        "city": "Boston",
+        "country": "USA"
+      }
+    ],
+    "abstract": "This fixture tests the wide-element rendering pipeline: wide figures that span both columns, numbered display equations rendered via the matplotlib mathtext backend, and wide tables. The document also includes inline equations within paragraph text and a full references section.",
+    "keywords": ["wide figures", "equations", "tables", "IEEE format", "column spanning"]
+  },
+  "blocks": [
+    {
+      "type": "heading",
+      "level": 1,
+      "text": "System Model",
+      "numbering": "I"
+    },
+    {
+      "type": "paragraph",
+      "text": "Consider a linear system described by the state-space representation shown in equation [EQ 1]. The system matrix A governs the dynamics while B represents the input matrix.",
+      "indent": true
+    },
+    {
+      "type": "equation",
+      "anchor": "EQ 1",
+      "latex": "\\dot{x}(t) = Ax(t) + Bu(t)",
+      "inline": false
+    },
+    {
+      "type": "paragraph",
+      "text": "The output equation is given by [EQ 2], where C is the observation matrix and D is the feed-through matrix.",
+      "indent": true
+    },
+    {
+      "type": "equation",
+      "anchor": "EQ 2",
+      "latex": "y(t) = Cx(t) + Du(t)",
+      "inline": false
+    },
+    {
+      "type": "heading",
+      "level": 1,
+      "text": "Experimental Results",
+      "numbering": "II"
+    },
+    {
+      "type": "paragraph",
+      "text": "Figure 1 shows the system architecture overview. This figure spans the full page width for clarity.",
+      "indent": true
+    },
+    {
+      "type": "wide_figure",
+      "anchor": "FIG 1",
+      "image_ref": "placeholder_wide.png",
+      "caption": "System architecture overview spanning both columns for improved readability."
+    },
+    {
+      "type": "paragraph",
+      "text": "The performance metrics are summarized in Table I below, which also spans the full page width.",
+      "indent": true
+    },
+    {
+      "type": "wide_table",
+      "anchor": "TABLE 1",
+      "caption": "Comparative performance metrics across baseline, proposed, and optimized configurations.",
+      "header_row": true,
+      "rows": [
+        ["Method", "Accuracy (%)", "Latency (ms)", "Memory (MB)", "Notes"],
+        ["Baseline", "87.3", "42.1", "256", "Standard configuration"],
+        ["Proposed", "93.7", "38.5", "312", "With optimization"],
+        ["Optimized", "95.1", "31.2", "298", "Full pipeline"]
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 1,
+      "text": "Conclusion",
+      "numbering": "III"
+    },
+    {
+      "type": "paragraph",
+      "text": "We have demonstrated wide figures, display equations, and wide tables. The continuous section breaks correctly switch between single-column and two-column layouts without page breaks.",
+      "indent": true
+    }
+  ],
+  "references": [
+    {
+      "key": "1",
+      "authors": ["R. E. Kalman"],
+      "title": "A New Approach to Linear Filtering and Prediction Problems",
+      "venue": "Journal of Basic Engineering",
+      "volume": "82",
+      "issue": "1",
+      "pages": "35–45",
+      "year": 1960,
+      "doi": "10.1115/1.3662552"
+    },
+    {
+      "key": "2",
+      "authors": ["K. J. Åström", "B. Wittenmark"],
+      "title": "Adaptive Control",
+      "venue": "Addison-Wesley",
+      "year": 1995
+    }
+  ],
+  "compile_options": {
+    "math_backend": "matplotlib",
+    "page_size": "a4"
+  }
+}

@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/tsconfig.tsbuildinfo
+
+# Build outputs
+gateway/dist/
+
+# Python
+engine/.venv/
+engine/__pycache__/
+engine/src/**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Environment files
+.env
+.env.local
+frontend/.env.local
+gateway/.env
+engine/.env
+
+# Object storage (dev)
+gateway/storage/
+
+# Outputs
+engine/outputs/
+outputs/
+
+# Stray dev logs
+gateway-out.txt
+gateway-err.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project notes (dev only)
+CLAUDE.md

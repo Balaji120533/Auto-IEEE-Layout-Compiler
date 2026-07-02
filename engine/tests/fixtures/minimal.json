@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "title": "A Minimal Paper for Testing the IEEE Compiler",
+    "authors": [
+      {
+        "name": "Alice Smith",
+        "affiliation_refs": ["1"],
+        "email": "alice@example.edu"
+      },
+      {
+        "name": "Bob Jones",
+        "affiliation_refs": ["2"]
+      }
+    ],
+    "affiliations": [
+      {
+        "key": "1",
+        "institution": "University of Example",
+        "department": "Department of Computer Science",
+        "city": "Springfield",
+        "country": "USA"
+      },
+      {
+        "key": "2",
+        "institution": "Institute of Technology",
+        "city": "Shelbyville",
+        "country": "USA"
+      }
+    ],
+    "abstract": "This is a minimal test paper to validate that the IEEE paper compiler correctly renders title, authors, affiliations, abstract, keywords, and a few body paragraphs into a two-column IEEE-formatted document. No figures, tables, or equations are included in this fixture.",
+    "keywords": ["IEEE formatting", "document compilation", "automated typesetting"],
+    "conference": "2025 IEEE International Conference on Document Processing"
+  },
+  "blocks": [
+    {
+      "type": "heading",
+      "level": 1,
+      "text": "Introduction",
+      "numbering": "I"
+    },
+    {
+      "type": "paragraph",
+      "text": "The automatic typesetting of academic papers has long been a challenge for researchers who prefer to focus on content rather than formatting. This paper demonstrates the minimal viable output of the IEEE Layout Compiler.",
+      "indent": true
+    },
+    {
+      "type": "paragraph",
+      "text": "Subsequent paragraphs are indented according to the IEEE double-column A4 style guide. The compiler is designed to be deterministic: given the same input JSON, it always produces byte-identical output.",
+      "indent": true
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Motivation",
+      "numbering": "A"
+    },
+    {
+      "type": "paragraph",
+      "text": "Many authors spend significant time reformatting papers for different IEEE venues. An automated compiler eliminates this burden.",
+      "indent": true
+    },
+    {
+      "type": "heading",
+      "level": 1,
+      "text": "Conclusion",
+      "numbering": "II"
+    },
+    {
+      "type": "paragraph",
+      "text": "We have presented a minimal working example of the IEEE Layout Compiler. Future milestones will add figure insertion, equation rendering, and AI-assisted structural parsing.",
+      "indent": true
+    }
+  ],
+  "references": [
+    {
+      "key": "1",
+      "authors": ["D. E. Knuth"],
+      "title": "The TeXbook",
+      "venue": "Addison-Wesley",
+      "year": 1984
+    },
+    {
+      "key": "2",
+      "authors": ["L. Lamport"],
+      "title": "LaTeX: A Document Preparation System",
+      "venue": "Addison-Wesley",
+      "year": 1994
+    }
+  ],
+  "compile_options": {
+    "math_backend": "matplotlib",
+    "page_size": "a4"
+  }
+}

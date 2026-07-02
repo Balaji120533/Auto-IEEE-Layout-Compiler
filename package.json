@@ -1,0 +1,13 @@
+{
+  "name": "ieee-paper-compiler",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --names \"frontend,gateway,engine\" --prefix-colors \"cyan,green,yellow\" \"pnpm --filter frontend dev\" \"pnpm --filter gateway dev\" \"powershell -ExecutionPolicy Bypass -File scripts/dev-engine.ps1\"",
+    "install:all": "pnpm install && uv --directory engine sync",
+    "schema:check": "node scripts/schema-check.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

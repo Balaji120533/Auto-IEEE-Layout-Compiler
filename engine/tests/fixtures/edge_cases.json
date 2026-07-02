@@ -1,0 +1,235 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "title": "Edge Cases: Very Long Captions, Many References, Lists, and Nested Structure",
+    "authors": [
+      {
+        "name": "David Lee",
+        "affiliation_refs": ["1", "2"],
+        "email": "dlee@univ.edu"
+      },
+      {
+        "name": "Eve Martinez",
+        "affiliation_refs": ["2"]
+      },
+      {
+        "name": "Frank Zhou",
+        "affiliation_refs": ["3"]
+      }
+    ],
+    "affiliations": [
+      {
+        "key": "1",
+        "institution": "State University",
+        "department": "Department of Computer Science and Engineering",
+        "city": "New York",
+        "country": "USA"
+      },
+      {
+        "key": "2",
+        "institution": "National Research Institute",
+        "department": "Advanced Computing Division",
+        "city": "Washington",
+        "country": "USA"
+      },
+      {
+        "key": "3",
+        "institution": "International Technology University",
+        "department": "School of Electrical and Electronic Engineering",
+        "city": "London",
+        "country": "UK"
+      }
+    ],
+    "abstract": "This fixture stress-tests edge cases in the IEEE compiler: (1) multiple authors with shared affiliations, (2) very long figure and table captions that wrap across multiple lines, (3) bullet and numbered lists, (4) three heading levels, (5) a large reference list with 10 entries covering journals, conferences, books, and online sources. This tests caption line wrapping, hanging indent in references, and correct IEEE heading numbering at all three levels.",
+    "keywords": ["edge cases", "stress test", "long captions", "multiple affiliations", "reference list"],
+    "conference": "2025 IEEE Conference on Compiler Design for Academic Publishing"
+  },
+  "blocks": [
+    {
+      "type": "heading",
+      "level": 1,
+      "text": "Introduction",
+      "numbering": "I"
+    },
+    {
+      "type": "paragraph",
+      "text": "This document exercises edge cases that are most likely to cause layout problems in a typesetting pipeline. We systematically test each class of edge case in separate sections.",
+      "indent": true
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Scope of Tests",
+      "numbering": "A"
+    },
+    {
+      "type": "list",
+      "style": "bullet",
+      "items": [
+        "Long captions that wrap across multiple lines in a narrow IEEE column",
+        "Three levels of section headings (I, I.A, I.A.1)",
+        "Bullet and numbered lists with multiple items",
+        "References with DOIs, page ranges, and URLs",
+        "Authors with multiple affiliations"
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 3,
+      "text": "Test Protocol",
+      "numbering": "1"
+    },
+    {
+      "type": "paragraph",
+      "text": "Each test case is rendered in isolation and inspected visually. Automated checks verify that images are present, styles are applied correctly, and no paragraphs overflow the column boundaries.",
+      "indent": true
+    },
+    {
+      "type": "heading",
+      "level": 1,
+      "text": "Long Caption Test",
+      "numbering": "II"
+    },
+    {
+      "type": "paragraph",
+      "text": "The following table has a very long caption designed to wrap multiple lines within a single column width, testing that the caption style handles word-wrap correctly without overflow or truncation.",
+      "indent": true
+    },
+    {
+      "type": "table",
+      "anchor": "TABLE 1",
+      "caption": "Detailed comparison of rendering accuracy, processing latency, memory consumption, and output quality scores across seven different algorithmic configurations tested on the IEEE document compilation benchmark dataset, evaluated on both A4 and Letter page sizes.",
+      "header_row": true,
+      "rows": [
+        ["Config", "Accuracy", "Latency", "Quality"],
+        ["A", "91.2%", "55ms", "4.2/5"],
+        ["B", "93.5%", "48ms", "4.5/5"],
+        ["C", "95.0%", "41ms", "4.8/5"]
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 1,
+      "text": "Numbered List Test",
+      "numbering": "III"
+    },
+    {
+      "type": "list",
+      "style": "numbered",
+      "items": [
+        "Initialize the document model from the JSON fixture.",
+        "Run preflight checks on all referenced image files.",
+        "Render any equation blocks to PNG using the math backend.",
+        "Build the DOCX file using the DocxBuilder class.",
+        "Convert the DOCX to PDF using LibreOffice headless.",
+        "Perform post-render preflight checks on the resulting PDF."
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 1,
+      "text": "Conclusion",
+      "numbering": "IV"
+    },
+    {
+      "type": "paragraph",
+      "text": "All edge cases have been included in this fixture. The rendering pipeline should handle each case gracefully, producing a correctly formatted IEEE document without crashes, missing content, or style errors.",
+      "indent": true
+    }
+  ],
+  "references": [
+    {
+      "key": "1",
+      "authors": ["A. Author", "B. Coauthor"],
+      "title": "A Survey of Automated Academic Document Formatting",
+      "venue": "IEEE Transactions on Document Processing",
+      "volume": "12",
+      "issue": "3",
+      "pages": "101–118",
+      "year": 2023,
+      "doi": "10.1109/TDP.2023.123456"
+    },
+    {
+      "key": "2",
+      "authors": ["C. Researcher"],
+      "title": "Column Layout Algorithms for Two-Column Academic Journals",
+      "venue": "Proc. ACM Symposium on Document Engineering",
+      "pages": "45–54",
+      "year": 2022
+    },
+    {
+      "key": "3",
+      "authors": ["D. Scholar", "E. Colleague", "F. Contributor"],
+      "title": "Deterministic Typesetting: A Formal Model",
+      "venue": "Journal of Computational Typography",
+      "volume": "5",
+      "issue": "1",
+      "pages": "1–28",
+      "year": 2021,
+      "doi": "10.1234/jct.2021.00001"
+    },
+    {
+      "key": "4",
+      "authors": ["G. Author"],
+      "title": "python-docx: Automating Word Document Creation",
+      "venue": "Open Source Journal",
+      "year": 2020,
+      "url": "https://python-docx.readthedocs.io"
+    },
+    {
+      "key": "5",
+      "authors": ["H. Writer", "I. Editor"],
+      "title": "IEEE Conference Templates: History and Best Practices",
+      "venue": "IEEE Potentials",
+      "volume": "39",
+      "issue": "4",
+      "pages": "22–27",
+      "year": 2020
+    },
+    {
+      "key": "6",
+      "authors": ["J. Developer"],
+      "title": "FastAPI: Modern Web Frameworks for Python",
+      "venue": "Python Software Foundation Newsletter",
+      "year": 2022
+    },
+    {
+      "key": "7",
+      "authors": ["K. Designer", "L. Architect"],
+      "title": "Section Breaks in Office Open XML: A Practical Guide",
+      "venue": "Proc. DocEng",
+      "pages": "77–86",
+      "year": 2019
+    },
+    {
+      "key": "8",
+      "authors": ["M. Typographer"],
+      "title": "Typesetting Mathematics for IEEE Publications",
+      "venue": "IEEE Signal Processing Magazine",
+      "volume": "40",
+      "issue": "2",
+      "year": 2023,
+      "doi": "10.1109/MSP.2023.098765"
+    },
+    {
+      "key": "9",
+      "authors": ["N. Researcher", "O. Postdoc"],
+      "title": "Automating the Last Mile of Academic Publishing",
+      "venue": "Nature Methods",
+      "volume": "18",
+      "pages": "1201–1210",
+      "year": 2021
+    },
+    {
+      "key": "10",
+      "authors": ["P. Practitioner"],
+      "title": "LibreOffice Headless: Batch Document Conversion at Scale",
+      "venue": "Linux Journal",
+      "year": 2020
+    }
+  ],
+  "compile_options": {
+    "math_backend": "matplotlib",
+    "page_size": "a4"
+  }
+}
