@@ -56,7 +56,7 @@ export default function PreviewPane({ preview, compileState, projectId, projectE
       </div>
 
       {/* Tab content */}
-      <div className="flex-1 overflow-y-auto scroll-thin">
+      <div className="flex-1 overflow-y-auto overflow-x-auto scroll-thin">
         {tab === 'preview' && (
           <motion.div
             key="preview-tab"
