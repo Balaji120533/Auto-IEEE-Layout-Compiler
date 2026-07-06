@@ -78,8 +78,11 @@ export const api = {
       body: JSON.stringify({ model }),
     });
     if (!r.ok) {
-      const err = await r.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error((err as { error: string }).error ?? 'Compile failed');
+      const body = await r.json().catch(() => ({ error: 'Unknown error' }));
+      // Surface the status so callers can recover from a stale/missing project (404).
+      const err = new Error((body as { error: string }).error ?? 'Compile failed') as Error & { status?: number };
+      err.status = r.status;
+      throw err;
     }
     return r.json();
   },

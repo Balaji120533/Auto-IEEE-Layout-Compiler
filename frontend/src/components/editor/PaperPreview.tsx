@@ -28,7 +28,7 @@ function Block({ block }: { block: PreviewBlock }) {
     case 'paragraph':
       return (
         <p className="text-[7.5px] leading-relaxed text-justify text-gray-700 mb-1">
-          {block.text.length > 600 ? block.text.slice(0, 600) + '…' : block.text}
+          {block.text}
         </p>
       );
 
@@ -108,7 +108,7 @@ export default function PaperPreview({ preview }: Props) {
       className="bg-white shadow-lg mx-4 my-4 overflow-hidden text-gray-900 select-none"
       style={{ fontFamily: '"Times New Roman", Times, serif', maxWidth: 640, fontSize: 9 }}
     >
-      {/* Header: single-column section */}
+      {/* Header: single-column section (title/authors/affiliations only) */}
       <div className="px-8 pt-8 pb-3 border-b border-gray-200">
         <h1 className="text-[13px] font-bold text-center leading-tight mb-1 tracking-wide">
           {preview.title || 'Untitled Paper'}
@@ -119,20 +119,6 @@ export default function PaperPreview({ preview }: Props) {
             {preview.authors.join(', ')}
           </p>
         )}
-
-        {preview.abstract && (
-          <div className="mt-3 mx-4 text-[7.5px] leading-relaxed text-justify">
-            <em className="font-semibold not-italic">Abstract—</em>
-            {preview.abstract.slice(0, 320)}{preview.abstract.length > 320 ? '…' : ''}
-          </div>
-        )}
-
-        {preview.keywords.length > 0 && (
-          <div className="mt-1 mx-4 text-[7px]">
-            <span className="font-semibold italic">Index Terms—</span>
-            {preview.keywords.join(', ')}
-          </div>
-        )}
       </div>
 
       {/* Wide figures — full width, above the columns */}
@@ -142,11 +128,37 @@ export default function PaperPreview({ preview }: Props) {
         </div>
       ))}
 
-      {/* Body: two-column section */}
+      {/* Body: two-column section. Abstract/Index Terms float at the top of
+          column 1 (left-half width) so following content (e.g. Introduction)
+          fills the rest of that column before overflowing into column 2 —
+          matching the Word table-in-2-col-section behavior. */}
       <div
         className="px-6 py-3"
-        style={{ columns: 2, columnGap: '0.75rem', columnRule: '1px solid #e5e7eb' }}
+        style={{
+          columns: 2,
+          columnGap: '0.75rem',
+          columnRule: '1px solid #e5e7eb',
+          columnFill: 'auto',
+          height: 760,
+        }}
       >
+        {(preview.abstract || preview.keywords.length > 0) && (
+          <div className="mb-1">
+            {preview.abstract && (
+              <div className="text-[7.5px] leading-relaxed text-justify">
+                <em className="font-semibold italic">Abstract—</em>
+                {preview.abstract}
+              </div>
+            )}
+            {preview.keywords.length > 0 && (
+              <div className="mt-1 text-[7px]">
+                <span className="font-semibold italic">Index Terms—</span>
+                {preview.keywords.join(', ')}
+              </div>
+            )}
+          </div>
+        )}
+
         {columnBlocks.length === 0 && (
           <p className="text-[8px] text-gray-400 italic">
             Add a section heading and some content on the left to see the structure.

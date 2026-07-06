@@ -143,11 +143,20 @@ export function useFormProject() {
     }, 800);
   }, [projectId]);
 
-  /** Ensure a project exists on the gateway, creating one if needed. Used
-   *  before any action (upload, compile) that requires a live projectId —
-   *  so a stale/missing project never permanently blocks those actions. */
+  /** Ensure a project exists on the gateway, creating one if needed. The
+   *  gateway keeps projects in memory only, so a server restart drops them
+   *  while a stale projectId lingers in localStorage — verify the stored id
+   *  is still known to the server before trusting it, so a restart never
+   *  permanently blocks compile/upload actions. */
   const ensureProject = useCallback(async (): Promise<string> => {
-    if (projectId) return projectId;
+    if (projectId) {
+      try {
+        await api.getProject(projectId);
+        return projectId;
+      } catch {
+        // Stale id — fall through and create a fresh project below.
+      }
+    }
     const p = await api.createProject();
     setProjectId(p.id);
     localStorage.setItem(LS_PROJECT, p.id);

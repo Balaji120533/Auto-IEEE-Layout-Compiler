@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Callable
 
 from docx import Document
+from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
@@ -96,6 +97,25 @@ def _make_sect_pr(cols: int, continuous: bool = True) -> OxmlElement:
     return sp
 
 
+def _strip_table_borders(table) -> None:
+    """Remove all visible borders so the layout box is invisible on the page."""
+    tbl_pr = table._tbl.tblPr
+    borders = OxmlElement("w:tblBorders")
+    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        el = OxmlElement(f"w:{edge}")
+        el.set(qn("w:val"), "nil")
+        borders.append(el)
+    tbl_pr.append(borders)
+
+
+def _set_table_layout_fixed(table) -> None:
+    """Force fixed column widths instead of Word auto-fitting to content."""
+    tbl_pr = table._tbl.tblPr
+    layout = OxmlElement("w:tblLayout")
+    layout.set(qn("w:type"), "fixed")
+    tbl_pr.append(layout)
+
+
 class DocxBuilder:
     def __init__(
         self,
@@ -124,6 +144,7 @@ class DocxBuilder:
     def build(self, model: DocumentModel) -> Document:
         self._render_header(model.metadata)
         self._end_title_section()           # transition: 1-col → 2-col body
+        self._render_abstract_and_keywords(model.metadata)
         for block in model.blocks:
             self._render_block(block)
         if model.references:
@@ -147,31 +168,49 @@ class DocxBuilder:
         p = self.doc.add_paragraph(author_names, style=S.AUTHOR)
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-        # Affiliations (one per unique key)
-        seen: set[str] = set()
-        for author in meta.authors:
-            for ref in author.affiliation_refs:
-                if ref in seen:
-                    continue
-                seen.add(ref)
-                aff = next((a for a in meta.affiliations if a.key == ref), None)
-                if aff is None:
-                    continue
-                parts = [aff.institution]
-                if aff.department:
-                    parts.insert(0, aff.department)
-                if aff.city and aff.country:
-                    parts.append(f"{aff.city}, {aff.country}")
-                elif aff.country:
-                    parts.append(aff.country)
-                p = self.doc.add_paragraph(", ".join(parts), style=S.AFFILIATION)
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                if author.email:
-                    ep = self.doc.add_paragraph(author.email, style=S.AFFILIATION)
-                    ep.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        # Affiliations grouped by unique key: every author sharing an affiliation
+        # is listed together on one line (IEEE convention), instead of repeating
+        # the affiliation once per author — keeps the title block compact.
+        for aff in meta.affiliations:
+            authors_here = [a for a in meta.authors if aff.key in a.affiliation_refs]
+            if not authors_here:
+                continue
 
-        # Abstract
-        abstract_para = self.doc.add_paragraph(style=S.ABSTRACT)
+            parts = [aff.institution]
+            if aff.department:
+                parts.insert(0, aff.department)
+            if aff.city and aff.country:
+                parts.append(f"{aff.city}, {aff.country}")
+            elif aff.country:
+                parts.append(aff.country)
+
+            names = ", ".join(a.name for a in authors_here)
+            line = f"{names} are with {', '.join(parts)}" if len(authors_here) > 1 \
+                else f"{names} is with {', '.join(parts)}"
+            p = self.doc.add_paragraph(line, style=S.AFFILIATION)
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+            emails = [a.email for a in authors_here if a.email]
+            if emails:
+                ep = self.doc.add_paragraph(f"(e-mail: {'; '.join(emails)}).", style=S.AFFILIATION)
+                ep.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    def _render_abstract_and_keywords(self, meta: DocumentMetadata) -> None:
+        """Abstract + Index Terms, confined to the left column's width so they sit
+        at the top of the first column and let Introduction continue directly
+        beneath them in that same column (standard IEEE layout) — not stretched
+        full-width and not isolated in their own section/box."""
+        box = self.doc.add_table(rows=1, cols=1)
+        box.autofit = False
+        box.alignment = WD_TABLE_ALIGNMENT.LEFT
+        cell = box.rows[0].cells[0]
+        cell.width = Inches(S.COL_WIDTH_IN)
+        _strip_table_borders(box)
+        _set_table_layout_fixed(box)
+
+        # docx creates one empty paragraph in a new cell; reuse it for Abstract.
+        abstract_para = cell.paragraphs[0]
+        abstract_para.style = self.doc.styles[S.ABSTRACT]
         abstract_para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         run = abstract_para.add_run("Abstract—")
         run.bold = True
@@ -179,7 +218,7 @@ class DocxBuilder:
         abstract_para.add_run(meta.abstract)
 
         # Keywords
-        kw_para = self.doc.add_paragraph(style=S.KEYWORDS)
+        kw_para = cell.add_paragraph(style=S.KEYWORDS)
         kw_para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         run = kw_para.add_run("Index Terms—")
         run.bold = True
