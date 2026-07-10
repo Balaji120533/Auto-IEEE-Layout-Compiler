@@ -351,15 +351,31 @@ class DocxBuilder:
         self._apply_table_borders(tbl)
         for r_idx, row_data in enumerate(block.rows):
             row = tbl.rows[r_idx]
+            is_head = block.header_row and r_idx == 0
             for c_idx, cell_text in enumerate(row_data):
                 cell = row.cells[c_idx]
-                cell.text = cell_text
-                style = S.TABLE_COL_HEAD if (block.header_row and r_idx == 0) else S.TABLE_COPY
-                for para in cell.paragraphs:
-                    try:
-                        para.style = style
-                    except KeyError:
-                        pass  # style not in template — leave as-is
+                # Write cell text with real line breaks for any manual newlines
+                # the user typed (Enter/Shift+Enter in the grid editor).
+                para = cell.paragraphs[0]
+                lines = cell_text.split("\n")
+                para.add_run(lines[0])
+                for extra in lines[1:]:
+                    run = para.add_run()
+                    run.add_break()
+                    run.add_text(extra)
+                style = S.TABLE_COL_HEAD if is_head else S.TABLE_COPY
+                try:
+                    para.style = style
+                except KeyError:
+                    pass  # style not in template — leave as-is
+                # Set alignment AFTER style so the paragraph style can't reset
+                # it. Header cells are always centered; body cells follow the
+                # table's center flag (default True) — matches the preview.
+                para.alignment = (
+                    WD_ALIGN_PARAGRAPH.CENTER
+                    if (is_head or block.center)
+                    else WD_ALIGN_PARAGRAPH.LEFT
+                )
 
     @staticmethod
     def _apply_table_borders(tbl) -> None:

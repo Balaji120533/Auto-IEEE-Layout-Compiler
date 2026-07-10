@@ -10,6 +10,7 @@ export type PreviewBlock =
   | { kind: 'heading'; level: 1 | 2 | 3; text: string; numbering?: string }
   | { kind: 'paragraph'; text: string }
   | { kind: 'figure'; label: string; caption: string; imageUrl?: string; wide?: boolean }
+  | { kind: 'table'; label: string; caption: string; rows: string[][]; headerRow: boolean; wide?: boolean; center?: boolean }
   | { kind: 'equation'; label: string; latex: string }
   | { kind: 'list'; style: 'bullet' | 'numbered'; items: string[] };
 

@@ -88,6 +88,52 @@ function Block({ block }: { block: PreviewBlock }) {
         </figure>
       );
 
+    case 'table':
+      return (
+        <figure className="break-inside-avoid my-2">
+          {/* Caption above the table — IEEE convention (mirrors the .docx). */}
+          <figcaption className="text-[6.5px] text-gray-600 text-center mb-0.5 leading-tight">
+            <span className="font-semibold uppercase">{block.label}.</span>{' '}
+            {block.caption}
+          </figcaption>
+          <table
+            className="w-full border-collapse"
+            style={{ fontSize: '6.5px', tableLayout: 'fixed' }}
+          >
+            <tbody>
+              {block.rows.map((row, r) => {
+                const isHead = block.headerRow && r === 0;
+                const align = block.center ?? true ? 'center' : 'left';
+                return (
+                  <tr key={r}>
+                    {row.map((cell, c) => {
+                      const CellTag = isHead ? 'th' : 'td';
+                      return (
+                        <CellTag
+                          key={c}
+                          className={`border border-gray-400 px-1 py-0.5 align-top ${
+                            isHead ? 'font-semibold' : ''
+                          }`}
+                          style={{
+                            textAlign: isHead ? 'center' : align,
+                            // Preserve manual line breaks the user typed in a cell.
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'break-word',
+                            wordBreak: 'break-word',
+                          }}
+                        >
+                          {cell}
+                        </CellTag>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </figure>
+      );
+
     case 'list':
       return (
         <ul className="text-[7.5px] text-gray-700 mb-1 pl-3 space-y-0.5">
@@ -160,9 +206,11 @@ export default function PaperPreview({ preview }: Props) {
   const measureRef = useRef<HTMLDivElement>(null);
   const [pages, setPages] = useState<PageColumns[] | null>(null);
 
-  // Wide figures span both columns; render them outside the column flow.
-  const columnBlocks = preview.blocks.filter(b => !(b.kind === 'figure' && b.wide));
-  const wideFigures  = preview.blocks.filter(b => b.kind === 'figure' && b.wide);
+  // Wide figures/tables span both columns; render them outside the column flow.
+  const isWide = (b: PreviewBlock) =>
+    (b.kind === 'figure' || b.kind === 'table') && b.wide;
+  const columnBlocks = preview.blocks.filter(b => !isWide(b));
+  const wideFigures  = preview.blocks.filter(isWide);
 
   const flowItems: FlowItem[] = [
     ...(preview.abstract || preview.keywords.length > 0

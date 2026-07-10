@@ -59,6 +59,7 @@ export interface TableBlock {
   caption: string;
   rows: string[][];
   header_row: boolean;
+  center?: boolean;
 }
 
 export interface EquationBlock {

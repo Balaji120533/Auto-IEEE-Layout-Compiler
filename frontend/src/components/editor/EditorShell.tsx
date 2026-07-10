@@ -24,6 +24,7 @@ function formToPreview(form: PaperForm): DocPreview {
   const blocks: PreviewBlock[] = [];
   const sections: PreviewSection[] = [];
   let figCount = 0;
+  let tableCount = 0;
   let eqCount  = 0;
 
   safeSections.forEach((s, i) => {
@@ -67,6 +68,24 @@ function formToPreview(form: PaperForm): DocPreview {
             });
           }
           break;
+        case 'table': {
+          const rows = (item.rows ?? [])
+            .map(r => r.map(c => (c ?? '').trim()))
+            .filter(r => r.some(c => c !== ''));
+          if (rows.length) {
+            tableCount++;
+            blocks.push({
+              kind: 'table',
+              label: `TABLE ${tableCount}`,
+              caption: item.caption?.trim() ?? '',
+              rows,
+              headerRow: item.headerRow,
+              wide: item.wide,
+              center: item.center ?? true,
+            });
+          }
+          break;
+        }
         case 'equation':
           if (item.latex?.trim()) {
             eqCount++;
@@ -115,7 +134,7 @@ function formToPreview(form: PaperForm): DocPreview {
     sections,
     blocks,
     figureCount: figCount,
-    tableCount: 0,
+    tableCount,
     equationCount: eqCount,
     referenceCount,
     references,

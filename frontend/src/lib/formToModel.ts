@@ -65,6 +65,27 @@ export function formToModel(form: PaperForm): DocumentModel {
           }
           break;
 
+        case 'table': {
+          // Drop fully-empty trailing rows/cols so stray blank grid cells the
+          // user never filled don't render as empty table rows in the doc.
+          const rows = item.rows
+            .map(r => r.map(c => c.trim()))
+            .filter(r => r.some(c => c !== ''));
+          if (rows.length) {
+            tableCounter++;
+            const wide = item.wide;
+            blocks.push({
+              type: wide ? 'wide_table' : 'table',
+              anchor: `${wide ? 'WIDE-TABLE' : 'TABLE'} ${tableCounter}`,
+              caption: item.caption.trim() || `Table ${tableCounter}.`,
+              rows,
+              header_row: item.headerRow,
+              center: item.center ?? true,
+            });
+          }
+          break;
+        }
+
         case 'equation':
           if (item.latex.trim()) {
             eqCounter++;

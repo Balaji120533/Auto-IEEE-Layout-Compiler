@@ -17,6 +17,7 @@ export interface AffiliationEntry {
 export type ContentItem =
   | { id: string; kind: 'paragraph'; text: string }
   | { id: string; kind: 'figure';    imageRef: string; filename: string; caption: string; wide: boolean }
+  | { id: string; kind: 'table';     caption: string; rows: string[][]; headerRow: boolean; wide: boolean; center?: boolean }
   | { id: string; kind: 'equation';  latex: string }
   | { id: string; kind: 'list';      style: 'bullet' | 'numbered'; items: string[] }
   | { id: string; kind: 'subsection'; level: 2 | 3; text: string };

@@ -73,6 +73,7 @@ class TableBlock(BaseModel):
     caption: str
     rows: list[list[str]]       # rows[row][col] — plain cell text
     header_row: bool
+    center: bool = True         # center-align cell text
 
 
 class EquationBlock(BaseModel):

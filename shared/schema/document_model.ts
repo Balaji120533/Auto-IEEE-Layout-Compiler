@@ -65,6 +65,7 @@ export interface TableBlock {
   caption: string;
   rows: string[][];             // rows[row][col] — plain cell text
   header_row: boolean;
+  center?: boolean;             // center-align cell text (default true)
 }
 
 export interface EquationBlock {

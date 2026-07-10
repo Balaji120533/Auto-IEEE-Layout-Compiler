@@ -95,6 +95,8 @@ export default function ContentBuilder({ form, onChange, onUploadImage }: Props)
     switch (kind) {
       case 'paragraph':  newItem = { id: uid(), kind: 'paragraph', text: '' }; break;
       case 'figure':     newItem = { id: uid(), kind: 'figure', imageRef: '', filename: '', caption: '', wide: false }; break;
+      case 'table':      newItem = { id: uid(), kind: 'table', caption: '', headerRow: true, wide: false, center: true,
+                                     rows: [['', ''], ['', '']] }; break;
       case 'equation':   newItem = { id: uid(), kind: 'equation', latex: '' }; break;
       case 'list':       newItem = { id: uid(), kind: 'list', style: 'bullet', items: [''] }; break;
       case 'subsection': newItem = { id: uid(), kind: 'subsection', level: 2, text: '' }; break;
@@ -170,6 +172,7 @@ const CONTENT_KINDS = [
   { kind: 'paragraph'  as const, icon: '¶', label: 'Paragraph'   },
   { kind: 'subsection' as const, icon: '§', label: 'Sub-section' },
   { kind: 'figure'     as const, icon: '🖼', label: 'Figure'      },
+  { kind: 'table'      as const, icon: '▦', label: 'Table'       },
   { kind: 'equation'   as const, icon: '∑', label: 'Equation'    },
   { kind: 'list'       as const, icon: '•', label: 'List'        },
 ];
@@ -370,6 +373,9 @@ function ItemEditor({ item, canRemove, onPatch, onRemove, onUploadImage }: ItemE
         />
       );
 
+    case 'table':
+      return <TableEditor item={item} removeBtn={removeBtn} onPatch={onPatch} />;
+
     case 'equation':
       return (
         <div className="bg-purple-50 rounded-lg p-3 space-y-1">
@@ -438,6 +444,160 @@ function ItemEditor({ item, canRemove, onPatch, onRemove, onUploadImage }: ItemE
     default:
       return null;
   }
+}
+
+// ── Table editor (visual grid) ─────────────────────────────────────────────────
+
+interface TableEditorProps {
+  item: Extract<ContentItem, { kind: 'table' }>;
+  removeBtn: React.ReactNode;
+  onPatch: (patch: Record<string, unknown>) => void;
+}
+
+function TableEditor({ item, removeBtn, onPatch }: TableEditorProps) {
+  const rows = item.rows;
+  const nCols = rows[0]?.length ?? 0;
+  const centered = item.center ?? true;
+
+  const setCell = (r: number, c: number, val: string) => {
+    const next = rows.map(row => [...row]);
+    next[r][c] = val;
+    onPatch({ rows: next });
+  };
+
+  const addRow = () =>
+    onPatch({ rows: [...rows.map(r => [...r]), Array(nCols).fill('')] });
+
+  const removeRow = (r: number) =>
+    onPatch({ rows: rows.filter((_, i) => i !== r) });
+
+  const addCol = () =>
+    onPatch({ rows: rows.map(row => [...row, '']) });
+
+  const removeCol = (c: number) =>
+    onPatch({ rows: rows.map(row => row.filter((_, i) => i !== c)) });
+
+  return (
+    <div className="bg-amber-50 rounded-lg p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">Table</span>
+        {removeBtn}
+      </div>
+
+      {/* Grid — one <input> per cell. First row styled as header when enabled. */}
+      <div className="overflow-x-auto">
+        <table className="border-collapse">
+          <tbody>
+            {rows.map((row, r) => (
+              <tr key={r}>
+                {row.map((cell, c) => (
+                  <td key={c} className="p-0.5">
+                    {/* Auto-growing textarea so the cell wraps to a new line
+                        on Enter/Shift+Enter, and the editor mirrors exactly
+                        what renders (including manual line breaks). */}
+                    <textarea
+                      rows={1}
+                      className={`w-24 px-1.5 py-1 rounded border text-[11px] bg-white resize-none overflow-hidden focus:outline-none focus:border-amber-400 ${
+                        centered ? 'text-center' : 'text-left'
+                      } ${
+                        item.headerRow && r === 0
+                          ? 'border-amber-300 font-semibold text-gray-800'
+                          : 'border-gray-200 text-gray-700'
+                      }`}
+                      placeholder={item.headerRow && r === 0 ? `Header ${c + 1}` : ''}
+                      value={cell}
+                      onChange={e => setCell(r, c, e.target.value)}
+                      ref={el => {
+                        // Grow to fit content so wrapped/multi-line text is fully visible.
+                        if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; }
+                      }}
+                    />
+                  </td>
+                ))}
+                {/* Delete-row control */}
+                <td className="pl-1">
+                  {rows.length > 1 && (
+                    <button
+                      type="button"
+                      title="Delete row"
+                      onClick={() => removeRow(r)}
+                      className="text-gray-300 hover:text-red-400 text-[11px]"
+                    >✕</button>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {/* Delete-column controls under each column */}
+            <tr>
+              {rows[0]?.map((_, c) => (
+                <td key={c} className="text-center">
+                  {nCols > 1 && (
+                    <button
+                      type="button"
+                      title="Delete column"
+                      onClick={() => removeCol(c)}
+                      className="text-gray-300 hover:text-red-400 text-[10px]"
+                    >✕</button>
+                  )}
+                </td>
+              ))}
+              <td />
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={addRow}
+          className="px-2 py-1 rounded-md text-[11px] text-amber-600 hover:bg-amber-100 border border-amber-200"
+        >+ Row</button>
+        <button
+          type="button"
+          onClick={addCol}
+          className="px-2 py-1 rounded-md text-[11px] text-amber-600 hover:bg-amber-100 border border-amber-200"
+        >+ Column</button>
+      </div>
+
+      <input
+        className={SM_INPUT}
+        placeholder="Caption (e.g. Comparison of model accuracy across datasets.)"
+        value={item.caption}
+        onChange={e => onPatch({ caption: e.target.value })}
+      />
+
+      <div className="flex flex-wrap gap-4">
+        <label className="flex items-center gap-2 text-[11px] text-gray-500 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={item.headerRow}
+            onChange={e => onPatch({ headerRow: e.target.checked })}
+            className="w-3 h-3"
+          />
+          First row is header
+        </label>
+        <label className="flex items-center gap-2 text-[11px] text-gray-500 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={centered}
+            onChange={e => onPatch({ center: e.target.checked })}
+            className="w-3 h-3"
+          />
+          Center cells
+        </label>
+        <label className="flex items-center gap-2 text-[11px] text-gray-500 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={item.wide}
+            onChange={e => onPatch({ wide: e.target.checked })}
+            className="w-3 h-3"
+          />
+          Full-width (spans both columns)
+        </label>
+      </div>
+    </div>
+  );
 }
 
 // ── Figure editor (upload state + validation) ──────────────────────────────────

@@ -64,6 +64,7 @@ class TableBlock(BaseModel):
     caption: str
     rows: list[list[str]]
     header_row: bool = True
+    center: bool = True
 
 
 class EquationBlock(BaseModel):

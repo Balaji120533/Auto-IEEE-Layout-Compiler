@@ -6,7 +6,7 @@ export interface Reference     { key: string; authors: string[]; title: string; 
 export interface ParagraphBlock{ type: 'paragraph'; text: string; indent: boolean }
 export interface HeadingBlock  { type: 'heading'; level: 1|2|3; text: string; numbering?: string }
 export interface FigureBlock   { type: 'figure'|'wide_figure'; anchor: string; image_ref: string; caption: string }
-export interface TableBlock    { type: 'table'|'wide_table'; anchor: string; caption: string; rows: string[][]; header_row: boolean }
+export interface TableBlock    { type: 'table'|'wide_table'; anchor: string; caption: string; rows: string[][]; header_row: boolean; center?: boolean }
 export interface EquationBlock { type: 'equation'; anchor: string; latex: string; inline: boolean }
 export interface ListBlock     { type: 'list'; style: 'bullet'|'numbered'; items: string[] }
 export type Block = ParagraphBlock|HeadingBlock|FigureBlock|TableBlock|EquationBlock|ListBlock
