@@ -27,20 +27,18 @@ class MatplotlibMathBackend:
         if not expression.startswith("$"):
             expression = f"${expression}$"
 
-        fig = plt.figure()
-        fig.patch.set_alpha(0)
-        ax = fig.add_axes([0, 0, 1, 1])
-        ax.axis("off")
-        ax.patch.set_alpha(0)
+        # Display equations render a bit larger so they read clearly in the
+        # two-column layout; inline stays close to body text size.
+        fontsize = 10 if inline else 13
 
-        fontsize = 10 if inline else 11
-        ax.text(
-            0.5, 0.5, expression,
-            transform=ax.transAxes,
-            fontsize=fontsize,
-            ha="center", va="center",
-            color="black",
-        )
+        # Draw the expression as a figure-level text artist (NOT inside an
+        # axes that fills the whole canvas — that stopped bbox_inches="tight"
+        # from cropping, leaving the glyph as a tiny mark on a large canvas,
+        # which then got clamped to column width and looked shrunken). Start
+        # from a tiny figure and let tight bbox grow it to exactly the text.
+        fig = plt.figure(figsize=(0.01, 0.01))
+        fig.patch.set_alpha(0)
+        fig.text(0, 0, expression, fontsize=fontsize, color="black")
 
         out_path = self.output_dir / f"eq_{uuid.uuid4().hex[:8]}.png"
         fig.savefig(
@@ -48,7 +46,7 @@ class MatplotlibMathBackend:
             dpi=self.DPI,
             bbox_inches="tight",
             transparent=True,
-            pad_inches=0.05,
+            pad_inches=0.02,
         )
         plt.close(fig)
         return out_path

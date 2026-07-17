@@ -1,3 +1,15 @@
+// Inline citation anchor "[CITE n]" → IEEE bracket "[n]" (case-insensitive,
+// tolerant of extra spaces). Numbers outside 1..refCount render as "[?]" so a
+// dangling citation is visible, matching the engine's docx behaviour.
+const CITE_RE = /\[\s*CITE\s+(\d+)\s*\]/gi;
+
+export function resolveCitations(text: string, refCount: number): string {
+  return text.replace(CITE_RE, (_m, num: string) => {
+    const n = Number(num);
+    return n >= 1 && n <= refCount ? `[${n}]` : '[?]';
+  });
+}
+
 export interface PreviewSection {
   level: 1 | 2 | 3;
   text: string;

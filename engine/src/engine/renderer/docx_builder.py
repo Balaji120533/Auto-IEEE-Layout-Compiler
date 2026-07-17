@@ -8,6 +8,7 @@ Every formatting decision is encoded in the DocumentModel JSON.
 from __future__ import annotations
 
 import copy
+import re
 from pathlib import Path
 from typing import Callable
 
@@ -34,6 +35,10 @@ from engine.schema import (
 )
 
 TEMPLATE_PATH = Path(__file__).parent.parent.parent.parent / "templates" / "ieee_template.docx"
+
+# Inline citation anchor, e.g. "[CITE 3]" — resolved to an IEEE bracket "[3]".
+# Case-insensitive; tolerates extra spaces like "[cite  3]".
+_CITE_RE = re.compile(r"\[\s*CITE\s+(\d+)\s*\]", re.IGNORECASE)
 
 
 def _fit_picture_size(img_path: Path, max_width_in: float, max_height_in: float) -> tuple[float, float] | None:
@@ -139,9 +144,14 @@ class DocxBuilder:
         # Section-break state: we start in the 1-col title section
         self._in_two_col = False
 
+        # Number of references available, for validating [CITE n] anchors.
+        # Set in build(); anchors outside 1..n render visibly as "[?]".
+        self._num_refs = 0
+
     # ── Public entry point ────────────────────────────────────────────────────
 
     def build(self, model: DocumentModel) -> Document:
+        self._num_refs = len(model.references) if model.references else 0
         self._render_header(model.metadata)
         self._end_title_section()           # transition: 1-col → 2-col body
         self._render_abstract_and_keywords(model.metadata)
@@ -273,10 +283,27 @@ class DocxBuilder:
     # ── Individual renderers ──────────────────────────────────────────────────
 
     def _render_paragraph(self, block: ParagraphBlock) -> None:
-        p = self.doc.add_paragraph(block.text, style=S.BODY_TEXT)
+        p = self.doc.add_paragraph(style=S.BODY_TEXT)
         p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         if block.indent:
             p.paragraph_format.first_line_indent = Pt(12)
+        self._add_text_with_citations(p, block.text)
+
+    def _add_text_with_citations(self, para, text: str) -> None:
+        """Append `text` to `para`, converting [CITE n] anchors into IEEE
+        in-text citation brackets [n]. An anchor whose number has no matching
+        reference renders as "[?]" so the problem is visible in the output.
+        Text between anchors is emitted verbatim; no other transformation."""
+        pos = 0
+        for m in _CITE_RE.finditer(text):
+            if m.start() > pos:
+                para.add_run(text[pos:m.start()])
+            n = int(m.group(1))
+            valid = 1 <= n <= self._num_refs
+            para.add_run(f"[{n}]" if valid else "[?]")
+            pos = m.end()
+        if pos < len(text):
+            para.add_run(text[pos:])
 
     def _render_heading(self, block: HeadingBlock) -> None:
         style = {1: S.HEADING_1, 2: S.HEADING_2, 3: S.HEADING_3}[block.level]
@@ -397,15 +424,37 @@ class DocxBuilder:
         self._render_table(block)
         self._exit_wide()
 
+    @staticmethod
+    def _png_width_in(img_path: Path) -> float | None:
+        """Natural display width of an equation PNG in inches = pixel width ÷ the
+        image's stored DPI (matplotlib writes 300 DPI). Returns None if unreadable."""
+        try:
+            with Image.open(img_path) as img:
+                px_w = img.size[0]
+                dpi = img.info.get("dpi", (300, 300))[0] or 300
+        except Exception:
+            return None
+        if px_w <= 0:
+            return None
+        return px_w / float(dpi)
+
     def _render_equation(self, block: EquationBlock) -> None:
         img_path = self.math_images.get(block.anchor)
         if img_path and img_path.exists():
             para = self.doc.add_paragraph(style=S.EQUATION)
             para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             run = para.add_run()
-            # Scale equation image: display = half column, inline = auto
-            width = Inches(S.COL_WIDTH_IN * 0.8) if not block.inline else Inches(1.2)
-            run.add_picture(str(img_path), width=width)
+            # Insert the equation PNG at its NATURAL size (pixel dimensions ÷
+            # render DPI), so an 11pt equation stays 11pt instead of being
+            # force-scaled to a fixed column fraction — that fixed width shrank
+            # wide equations down until the glyphs looked tiny. Only clamp width
+            # if the natural size would overflow the column.
+            max_width_in = S.COL_WIDTH_IN * (1.0 if not block.inline else 0.4)
+            natural_in = self._png_width_in(img_path)
+            if natural_in and natural_in <= max_width_in:
+                run.add_picture(str(img_path), width=Inches(natural_in))
+            else:
+                run.add_picture(str(img_path), width=Inches(max_width_in))
         else:
             # Fallback: plain text LaTeX
             p = self.doc.add_paragraph(style=S.EQUATION)
@@ -425,7 +474,7 @@ class DocxBuilder:
             else:
                 p = self.doc.add_paragraph(style=S.BODY_TEXT)
                 p.paragraph_format.left_indent = Pt(18)
-            p.add_run(item)
+            self._add_text_with_citations(p, item)
 
     # ── References ────────────────────────────────────────────────────────────
 

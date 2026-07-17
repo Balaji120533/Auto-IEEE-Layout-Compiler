@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { DocPreview, PreviewBlock } from '@/lib/parsePreview';
+import { resolveCitations } from '@/lib/parsePreview';
 import MathBlock from './MathBlock';
 
 interface Props {
@@ -12,6 +13,14 @@ interface Props {
 // A page holds two columns of this height, so the total "content budget" per
 // page is 2x this — matches the column-fill box used to render each page.
 const PAGE_COLUMN_HEIGHT = 760;
+
+// Vertical padding on the two-column body row (py-3 = 12px top + 12px bottom).
+// With box-sizing:border-box the row's inner content area is shorter than
+// PAGE_COLUMN_HEIGHT by this amount, so pagination must fill only up to the
+// inner height — otherwise the last line of a full column bleeds past the
+// padding and over the page's bottom edge / footer.
+const COLUMN_BODY_PADDING_Y = 12; // py-3, one side
+const COLUMN_FILL_BUDGET = PAGE_COLUMN_HEIGHT - COLUMN_BODY_PADDING_Y * 2;
 
 // Fixed page card width. Must be an exact px width (not max-width) so it can
 // never be squeezed narrower by its flex container — the hidden measurement
@@ -28,6 +37,16 @@ const COLUMN_GAP = 12;     // 0.75rem
 const COLUMN_SAFETY_MARGIN = 6;
 const COLUMN_WIDTH = (PAGE_WIDTH - PAGE_PADDING_X * 2 - COLUMN_GAP) / 2 - COLUMN_SAFETY_MARGIN;
 
+// The columns use border-box, so the left column's inner TEXT width is smaller
+// than COLUMN_WIDTH by its right padding + right border, while the measurement
+// pass has neither. If we measured at the full COLUMN_WIDTH, the left column's
+// text would wrap to more lines than measured and the last paragraph would
+// overflow the column bottom (visible when editing an end-of-column paragraph:
+// it grew but was not re-flowed to the next column). Measure at the narrowest
+// real content width so height is never underestimated for either column.
+const COLUMN_INNER_BORDER = 1;  // borderRight on the left column
+const MEASURE_WIDTH = COLUMN_WIDTH - COLUMN_GAP / 2 - COLUMN_INNER_BORDER;
+
 const HEADING_CLS: Record<1 | 2 | 3, string> = {
   1: 'text-[8.5px] font-bold uppercase tracking-wider text-center mt-4 mb-1',
   2: 'text-[8px] font-semibold italic mt-3 mb-0.5',
@@ -41,7 +60,7 @@ function headingText(b: Extract<PreviewBlock, { kind: 'heading' }>): string {
   return `${b.numbering}) ${b.text}`;
 }
 
-function Block({ block }: { block: PreviewBlock }) {
+function Block({ block, refCount }: { block: PreviewBlock; refCount: number }) {
   switch (block.kind) {
     case 'heading':
       return <div className={`${HEADING_CLS[block.level]} break-inside-avoid`}>{headingText(block)}</div>;
@@ -49,7 +68,7 @@ function Block({ block }: { block: PreviewBlock }) {
     case 'paragraph':
       return (
         <p className="text-[7.5px] leading-relaxed text-justify text-gray-700 mb-1">
-          {block.text}
+          {resolveCitations(block.text, refCount)}
         </p>
       );
 
@@ -140,7 +159,7 @@ function Block({ block }: { block: PreviewBlock }) {
           {block.items.map((it, i) => (
             <li key={i} className="leading-tight">
               <span className="text-gray-400 mr-1">{block.style === 'bullet' ? '•' : `${i + 1}.`}</span>
-              {it}
+              {resolveCitations(it, refCount)}
             </li>
           ))}
         </ul>
@@ -158,7 +177,7 @@ type FlowItem =
   | { kind: 'block'; block: PreviewBlock; index: number }
   | { kind: 'references'; refs: DocPreview['references'] };
 
-function FlowItemView({ item }: { item: FlowItem }) {
+function FlowItemView({ item, refCount }: { item: FlowItem; refCount: number }) {
   switch (item.kind) {
     case 'abstract':
       return (
@@ -178,7 +197,7 @@ function FlowItemView({ item }: { item: FlowItem }) {
         </div>
       );
     case 'block':
-      return <Block block={item.block} />;
+      return <Block block={item.block} refCount={refCount} />;
     case 'references':
       return (
         <div className="break-inside-avoid mt-3">
@@ -254,7 +273,7 @@ export default function PaperPreview({ preview }: Props) {
     flowItems.forEach((item, i) => {
       const h = heights[i] ?? 0;
       const hasContent = col === 'left' ? left.length > 0 : right.length > 0;
-      if (hasContent && colHeight + h > PAGE_COLUMN_HEIGHT) {
+      if (hasContent && colHeight + h > COLUMN_FILL_BUDGET) {
         if (col === 'left') {
           col = 'right';
           colHeight = 0;
@@ -334,14 +353,14 @@ export default function PaperPreview({ preview }: Props) {
           pointerEvents: 'none',
           top: -99999,
           left: -99999,
-          width: COLUMN_WIDTH,
+          width: MEASURE_WIDTH,
           overflowWrap: 'break-word',
           wordBreak: 'break-word',
         }}
       >
         {flowItems.map((item, i) => (
           <div key={i}>
-            <FlowItemView item={item} />
+            <FlowItemView item={item} refCount={preview.references.length} />
           </div>
         ))}
       </div>
@@ -375,7 +394,7 @@ export default function PaperPreview({ preview }: Props) {
           {/* Wide figures — full width, above the columns, page 1 only */}
           {pageIndex === 0 && wideFigures.map((b, i) => (
             <div key={`wide-${i}`} className="px-6 pt-2">
-              <Block block={b} />
+              <Block block={b} refCount={preview.references.length} />
             </div>
           ))}
 
@@ -404,12 +423,25 @@ export default function PaperPreview({ preview }: Props) {
                 overflow: 'hidden',
                 borderRight: '1px solid #e5e7eb',
                 paddingRight: COLUMN_GAP / 2,
+                // Match the measurement container's wrapping so a long or
+                // unbreakable run (e.g. a word glued to a "[1]" citation) wraps
+                // here instead of overflowing and being clipped by overflow:hidden.
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
               }}
             >
-              {cols.left.map((item, i) => <FlowItemView key={i} item={item} />)}
+              {cols.left.map((item, i) => <FlowItemView key={i} item={item} refCount={preview.references.length} />)}
             </div>
-            <div style={{ width: COLUMN_WIDTH, flexShrink: 0, overflow: 'hidden' }}>
-              {cols.right.map((item, i) => <FlowItemView key={i} item={item} />)}
+            <div
+              style={{
+                width: COLUMN_WIDTH,
+                flexShrink: 0,
+                overflow: 'hidden',
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
+              }}
+            >
+              {cols.right.map((item, i) => <FlowItemView key={i} item={item} refCount={preview.references.length} />)}
             </div>
           </div>
 
