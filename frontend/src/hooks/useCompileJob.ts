@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { api } from '@/lib/api';
+import { api, type PreflightWarning } from '@/lib/api';
 
 export type JobPhase = 'idle' | 'compiling' | 'done' | 'failed';
 
@@ -10,10 +10,11 @@ export interface CompileState {
   jobId: string;
   messages: string[];
   artifacts: Record<string, string>;
+  warnings: PreflightWarning[];
   error?: string;
 }
 
-const IDLE: CompileState = { phase: 'idle', jobId: '', messages: [], artifacts: {} };
+const IDLE: CompileState = { phase: 'idle', jobId: '', messages: [], artifacts: {}, warnings: [] };
 
 export function useCompileJob() {
   const [state, setState] = useState<CompileState>(IDLE);
@@ -21,7 +22,7 @@ export function useCompileJob() {
 
   const compile = useCallback(async (projectId: string, model?: unknown) => {
     es.current?.close();
-    setState({ phase: 'compiling', jobId: '', messages: ['Submitting job…'], artifacts: {} });
+    setState({ phase: 'compiling', jobId: '', messages: ['Submitting job…'], artifacts: {}, warnings: [] });
 
     let jobId: string;
     try {
@@ -31,7 +32,7 @@ export function useCompileJob() {
         ({ jobId } = await api.compile(projectId));
       }
     } catch (err: any) {
-      setState({ phase: 'failed', jobId: '', messages: [], artifacts: {}, error: err.message });
+      setState({ phase: 'failed', jobId: '', messages: [], artifacts: {}, warnings: [], error: err.message });
       return;
     }
 
@@ -47,10 +48,15 @@ export function useCompileJob() {
 
         if (data.type === 'progress') {
           setState(s => ({ ...s, messages: [...s.messages, data.message as string] }));
+        } else if (data.type === 'warning') {
+          setState(s => ({
+            ...s,
+            warnings: [...s.warnings, { level: data.level, anchor: data.anchor, message: data.message }],
+          }));
         } else if (data.type === 'done') {
           source.close();
           api.getJobStatus(jobId).then(status => {
-            setState(s => ({ ...s, phase: 'done', artifacts: status.artifacts ?? {} }));
+            setState(s => ({ ...s, phase: 'done', artifacts: status.artifacts ?? {}, warnings: status.warnings ?? s.warnings }));
           }).catch(() => {
             setState(s => ({ ...s, phase: 'done' }));
           });
@@ -69,6 +75,7 @@ export function useCompileJob() {
           ...s,
           phase: status.status === 'done' ? 'done' : status.status === 'failed' ? 'failed' : 'compiling',
           artifacts: status.artifacts ?? {},
+          warnings: status.warnings ?? s.warnings,
           messages: [...s.messages, ...status.messages.slice(s.messages.length)],
         }));
       }).catch(() => {

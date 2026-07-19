@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "title": "Signal Processing with Wide Figures, Equations, and Tables",
+    "authors": [
+      { "name": "Alex Rivera", "affiliation_refs": ["1"], "email": "a.rivera@example.edu" },
+      { "name": "Priya Nair", "affiliation_refs": ["1", "2"] }
+    ],
+    "affiliations": [
+      { "key": "1", "institution": "Example Institute of Technology", "department": "Dept. of Electrical Engineering", "city": "Metropolis", "country": "USA" },
+      { "key": "2", "institution": "Example Research Labs", "city": "Metropolis", "country": "USA" }
+    ],
+    "abstract": "This example demonstrates the full range of IEEE layout features: a wide (full-width) figure spanning both columns, a display equation, a single-column table, and a wide table. It is intended as a reference for how the JSON document model expresses each of these block types and how the compiler positions them using continuous section breaks.",
+    "keywords": ["signal processing", "layout compiler", "equations", "wide figures"],
+    "conference": "2026 Example International Conference on Communications"
+  },
+  "blocks": [
+    { "type": "heading", "level": 1, "text": "Introduction", "numbering": "I" },
+    { "type": "paragraph", "text": "Figure 1 below spans both columns to show a comparison of two periodic signals over time." },
+    {
+      "type": "wide_figure",
+      "anchor": "[WIDE-FIG 1]",
+      "image_ref": "images/signal-comparison.png",
+      "caption": "Comparison of sine and cosine signal amplitudes over time."
+    },
+    { "type": "heading", "level": 1, "text": "Method", "numbering": "II" },
+    { "type": "paragraph", "text": "The relationship between the signals is captured by the following identity, shown in Equation 1." },
+    {
+      "type": "equation",
+      "anchor": "[EQ 1]",
+      "latex": "\\sin^2(x) + \\cos^2(x) = 1",
+      "inline": false
+    },
+    { "type": "paragraph", "text": "Table I summarizes the sampling parameters used to generate the comparison figure." },
+    {
+      "type": "table",
+      "anchor": "[TABLE 1]",
+      "caption": "Sampling parameters",
+      "rows": [
+        ["Parameter", "Value"],
+        ["Sample rate", "1 kHz"],
+        ["Duration", "10 s"],
+        ["Window", "Hann"]
+      ],
+      "header_row": true,
+      "center": true
+    },
+    { "type": "heading", "level": 1, "text": "Results", "numbering": "III" },
+    { "type": "paragraph", "text": "Table II reports results across a wider set of configurations and is rendered as a full-width table because it has more columns than fit in a single column." },
+    {
+      "type": "wide_table",
+      "anchor": "[WIDE-TABLE 2]",
+      "caption": "Comparison of configurations across all tested scenarios",
+      "rows": [
+        ["Scenario", "Sample Rate", "Duration", "Window", "Peak SNR", "Notes"],
+        ["A", "1 kHz", "10 s", "Hann", "24.1 dB", "Baseline"],
+        ["B", "2 kHz", "10 s", "Hamming", "26.7 dB", "Higher rate"],
+        ["C", "1 kHz", "20 s", "Hann", "24.3 dB", "Longer window"]
+      ],
+      "header_row": true,
+      "center": true
+    },
+    { "type": "heading", "level": 1, "text": "Conclusion", "numbering": "IV" },
+    { "type": "paragraph", "text": "This example paper compiles a mix of wide and single-column elements, demonstrating the continuous section-break mechanism used for wide content." }
+  ],
+  "references": [
+    {
+      "key": "1",
+      "authors": ["A. Rivera", "P. Nair"],
+      "title": "A Framework for Deterministic Document Layout",
+      "venue": "Proc. Example Conf. on Document Engineering",
+      "year": 2025,
+      "pages": "1-10"
+    }
+  ],
+  "compile_options": { "math_backend": "matplotlib", "page_size": "a4" }
+}

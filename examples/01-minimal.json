@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "title": "A Minimal IEEE Paper",
+    "authors": [
+      { "name": "Jane Doe", "affiliation_refs": ["1"], "email": "jane.doe@example.edu" }
+    ],
+    "affiliations": [
+      { "key": "1", "institution": "Example University", "department": "Dept. of Computer Science", "city": "Springfield", "country": "USA" }
+    ],
+    "abstract": "This paper demonstrates the smallest valid document that the Auto-IEEE Layout Compiler can typeset: a title, one author, an abstract, keywords, and two body sections. It is a good starting point for understanding the JSON document model before adding figures, tables, or equations.",
+    "keywords": ["IEEE format", "document model", "typesetting"],
+    "conference": "2026 Example Conference on Software Systems"
+  },
+  "blocks": [
+    { "type": "heading", "level": 1, "text": "Introduction", "numbering": "I" },
+    { "type": "paragraph", "text": "This section introduces the purpose of the paper. Body paragraphs are justified and automatically flow across the two-column layout." },
+    { "type": "paragraph", "text": "A second paragraph shows that consecutive paragraphs are rendered with a first-line indent, matching standard IEEE conference formatting." },
+    { "type": "heading", "level": 1, "text": "Conclusion", "numbering": "II" },
+    { "type": "paragraph", "text": "This minimal example compiles to a complete, submission-formatted single-column-per-section document with no figures, tables, or equations." }
+  ],
+  "references": [],
+  "compile_options": { "math_backend": "matplotlib", "page_size": "a4" }
+}

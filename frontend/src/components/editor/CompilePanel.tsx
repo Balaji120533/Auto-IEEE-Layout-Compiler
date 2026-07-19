@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function CompilePanel({ state, projectError, onCompile, onReset }: Props) {
-  const { phase, messages, artifacts, error } = state;
+  const { phase, messages, artifacts, warnings, error } = state;
   const isIdle = phase === 'idle';
   const isCompiling = phase === 'compiling';
   const isDone = phase === 'done';
@@ -83,6 +83,41 @@ export default function CompilePanel({ state, projectError, onCompile, onReset }
               {isFailed && error && (
                 <div className="text-red-400 mt-1">✗ {error}</div>
               )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Preflight warnings */}
+      <AnimatePresence>
+        {(isDone || isCompiling) && warnings.length > 0 && (
+          <motion.div
+            key="warnings"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden px-4 pt-3"
+          >
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-1.5">
+              Preflight Warnings
+            </p>
+            <div className="flex flex-col gap-1.5">
+              {warnings.map((w, i) => (
+                <div
+                  key={i}
+                  className={[
+                    'flex items-start gap-2 px-3 py-2 rounded-lg border text-xs',
+                    w.level === 'error'
+                      ? 'bg-red-50 border-red-100 text-red-700'
+                      : 'bg-amber-50 border-amber-100 text-amber-700',
+                  ].join(' ')}
+                >
+                  <span className="font-mono text-[10px] font-semibold uppercase opacity-70 flex-shrink-0">
+                    {w.anchor}
+                  </span>
+                  <span>{w.message}</span>
+                </div>
+              ))}
             </div>
           </motion.div>
         )}

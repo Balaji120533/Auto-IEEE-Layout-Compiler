@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "title": "A Survey of Approaches to Automated Manuscript Typesetting, with an Extended Discussion of Formatting Fidelity, Reproducibility, and Long-Form Bibliographic Practice in Engineering Venues",
+    "authors": [
+      { "name": "Sam Okafor", "affiliation_refs": ["1"], "email": "s.okafor@example.edu" }
+    ],
+    "affiliations": [
+      { "key": "1", "institution": "Example State University", "department": "School of Informatics", "city": "Rivertown", "country": "USA" }
+    ],
+    "abstract": "This example stresses two edge cases: (1) in-text citations using the [CITE n] anchor syntax, which resolve to IEEE bracket citations linked to a longer reference list, and (2) bullet and numbered lists mixed with body text. It also includes a deliberately long figure caption to check caption wrapping and pagination behavior near a column boundary.",
+    "keywords": ["citations", "bibliography", "lists", "reproducibility"],
+    "conference": "2026 Example Symposium on Scholarly Publishing Tools"
+  },
+  "blocks": [
+    { "type": "heading", "level": 1, "text": "Related Work", "numbering": "I" },
+    { "type": "paragraph", "text": "Prior systems have approached document typesetting from different angles. Some rely on template engines [CITE 1], others on constraint-based layout solvers [CITE 2], and still others on direct manipulation of Office Open XML structures [CITE 3]. This paper's compiler follows the template-engine tradition described in [CITE 1] but adds deterministic pagination." },
+    { "type": "paragraph", "text": "A comparison of the three approaches is summarized as a list below." },
+    {
+      "type": "list",
+      "style": "bullet",
+      "items": [
+        "Template engines: fast, but limited to pre-defined slots [CITE 1].",
+        "Constraint solvers: flexible, but computationally expensive [CITE 2].",
+        "Direct XML manipulation: precise, but brittle across Word versions [CITE 3]."
+      ]
+    },
+    { "type": "heading", "level": 1, "text": "Method", "numbering": "II" },
+    { "type": "paragraph", "text": "The pipeline proceeds in the following numbered steps." },
+    {
+      "type": "list",
+      "style": "numbered",
+      "items": [
+        "Parse the author's structured input into the JSON document model.",
+        "Resolve all [CITE n] anchors against the reference list, as described in [CITE 4].",
+        "Render each block deterministically using the Golden IEEE template.",
+        "Run preflight checks for image DPI, page count, and overflow."
+      ]
+    },
+    { "type": "heading", "level": 1, "text": "Discussion", "numbering": "III" },
+    { "type": "paragraph", "text": "An unusually long figure caption is used below to verify that captions wrap correctly within a single column and do not overlap adjacent content, even when the caption text approaches three full lines at the default caption font size, which is a common failure mode noted in earlier layout tooling [CITE 5]." },
+    {
+      "type": "figure",
+      "anchor": "[FIG 1]",
+      "image_ref": "images/signal-comparison.png",
+      "caption": "An example figure with an intentionally long caption used to test caption wrapping behavior: this text is meant to span multiple lines within the column width so that pagination and spacing near the caption can be verified against the two-column IEEE layout, including cases where the figure sits near the bottom of a column."
+    },
+    { "type": "paragraph", "text": "Citation numbering renumbers automatically if references are reordered in the source form, since [CITE n] anchors are resolved at compile time rather than typed as literal numbers." },
+    { "type": "heading", "level": 1, "text": "Conclusion", "numbering": "IV" },
+    { "type": "paragraph", "text": "This example demonstrates citation resolution, mixed list styles, and long-caption handling in a single compile." }
+  ],
+  "references": [
+    { "key": "1", "authors": ["M. Chen", "R. Patel"], "title": "Template-Driven Document Generation at Scale", "venue": "Proc. Example Conf. on Publishing Systems", "year": 2022, "pages": "45-53" },
+    { "key": "2", "authors": ["L. Fischer"], "title": "Constraint-Based Layout for Structured Documents", "venue": "Journal of Example Document Engineering", "year": 2021, "volume": "12", "issue": "3", "pages": "201-219" },
+    { "key": "3", "authors": ["T. Anand", "K. Weber", "J. Silva"], "title": "Direct OOXML Manipulation: Lessons from Production Use", "venue": "Proc. Example Workshop on Office Formats", "year": 2023, "pages": "88-96" },
+    { "key": "4", "authors": ["S. Okafor"], "title": "Deterministic Citation Resolution in Compiled Manuscripts", "venue": "Example Symposium on Scholarly Publishing Tools", "year": 2024, "pages": "12-20" },
+    { "key": "5", "authors": ["H. Bergström", "N. Ibrahim"], "title": "Common Failure Modes in Automated Two-Column Typesetting", "venue": "Proc. Example Conf. on Document Engineering", "year": 2020, "pages": "301-310" }
+  ],
+  "compile_options": { "math_backend": "matplotlib", "page_size": "a4" }
+}

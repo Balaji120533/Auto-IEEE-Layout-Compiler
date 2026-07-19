@@ -6,9 +6,9 @@ equations into a structured editor, watch a live preview build itself, and
 download a fully formatted paper — no LaTeX, no Word wrangling.
 
 > **Philosophy — a typesetter, not a writer.** The formatting engine is fully
-> deterministic. AI (planned for a later release) is only ever an *enhancement*
-> for structural parsing and grammar suggestions; it never silently rewrites
-> your text. The product is fully usable with zero AI in the loop.
+> deterministic, with zero AI in the loop anywhere in the pipeline. Grammar
+> checking is intentionally left to dedicated tools (e.g. Grammarly) rather
+> than duplicated here.
 
 ---
 
@@ -24,7 +24,10 @@ download a fully formatted paper — no LaTeX, no Word wrangling.
 - **Deterministic compile** — the form is serialised to a fully-resolved JSON
   document model and rendered to `.docx` + `.pdf` by the Python engine.
 - **Async jobs** — compiles run as background jobs with live progress over SSE.
-- **Preflight checks** — figure DPI, page count, and overflow warnings.
+- **Preflight checks** — figure DPI, page count, and overflow warnings, listed
+  in the compile panel after each run.
+- **Citations** — type `[CITE n]` inline in any paragraph to insert an IEEE
+  bracket citation `[n]` linked to your reference list.
 - **Local persistence** — projects auto-save to `localStorage`; nothing leaves
   your machine.
 
@@ -101,17 +104,20 @@ type your paper.
 1. **Fill the form** on the left — title, authors, abstract, keywords.
 2. **Add sections**, and inside each section add content blocks: paragraphs,
    sub-sections, figures (click to upload an image), equations
-   (`x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}` — no `$$` needed), and lists.
+   (`x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}` — no `$$` needed), and lists. Type
+   `[CITE 1]` inside a paragraph to cite reference #1 — it renders as `[1]`.
 3. **Watch the right pane** render a live two-column IEEE preview with your
    real images and typeset equations.
-4. **Click Compile** to generate the `.docx` and `.pdf`, then download them once
-   the job finishes.
+4. **Click Compile** to generate the `.docx` and `.pdf`. Any preflight warnings
+   (low-DPI figures, page count, etc.) are listed above the download buttons.
+   Download once the job finishes.
 
-A headless / scriptable path exists too — the engine has a CLI test harness:
+A headless / scriptable path exists too — the engine has a CLI test harness.
+See [`examples/`](examples/) for 3 ready-to-run fixtures:
 
 ```bash
 cd engine
-uv run python -m engine.cli tests/fixtures/minimal.json
+uv run python -m engine.cli ../examples/01-minimal.json
 ```
 
 ---
@@ -136,6 +142,7 @@ uv run python -m engine.cli tests/fixtures/minimal.json
 │       ├── preflight/           DPI / page-count / overflow checks
 │       └── cli.py               local test harness
 ├── shared/          JSON document-model schema (TS + Pydantic) + docs
+├── examples/        3 ready-to-compile sample papers (see examples/README.md)
 ├── scripts/         dev-engine runner, schema-check
 ├── Makefile         make dev / make install
 └── package.json     pnpm workspaces + concurrently dev runner

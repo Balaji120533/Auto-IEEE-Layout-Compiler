@@ -40,6 +40,38 @@ TEMPLATE_PATH = Path(__file__).parent.parent.parent.parent / "templates" / "ieee
 # Case-insensitive; tolerates extra spaces like "[cite  3]".
 _CITE_RE = re.compile(r"\[\s*CITE\s+(\d+)\s*\]", re.IGNORECASE)
 
+# Extracts the trailing number from an anchor like "FIG 2", "WIDE-FIG 2",
+# "[TABLE 1]", "WIDE-TABLE 1" — a plain str.replace("FIG ", "") breaks on the
+# WIDE- prefixed forms (leaves "WIDE-2" in the caption instead of "2"), so
+# captions pull just the digits regardless of anchor shape.
+_ANCHOR_NUM_RE = re.compile(r"(\d+)")
+
+
+def _anchor_number(anchor: str) -> str:
+    m = _ANCHOR_NUM_RE.search(anchor)
+    return m.group(1) if m else anchor
+
+
+_ROMAN_NUMERALS = [
+    (1000, "M"), (900, "CM"), (500, "D"), (400, "CD"),
+    (100, "C"), (90, "XC"), (50, "L"), (40, "XL"),
+    (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I"),
+]
+
+
+def _to_roman(n: int) -> str:
+    result = []
+    for value, symbol in _ROMAN_NUMERALS:
+        count, n = divmod(n, value)
+        result.append(symbol * count)
+    return "".join(result)
+
+
+def _anchor_roman(anchor: str) -> str:
+    """IEEE table numbers are Roman numerals ("TABLE I", not "TABLE 1")."""
+    digits = _anchor_number(anchor)
+    return _to_roman(int(digits)) if digits.isdigit() else digits
+
 
 def _fit_picture_size(img_path: Path, max_width_in: float, max_height_in: float) -> tuple[float, float] | None:
     """Compute (width_in, height_in) that fits the image inside the given box while
@@ -337,7 +369,7 @@ class DocxBuilder:
 
         cap = self.doc.add_paragraph(style=S.FIGURE_CAPTION)
         cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        cap.add_run(f"Fig. {block.anchor.replace('FIG ', '')}. ").bold = True
+        cap.add_run(f"Fig. {_anchor_number(block.anchor)}. ").bold = True
         cap.add_run(block.caption)
 
     def _render_wide_figure(self, block: FigureBlock) -> None:
@@ -359,7 +391,7 @@ class DocxBuilder:
 
         cap = self.doc.add_paragraph(style=S.FIGURE_CAPTION)
         cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        cap.add_run(f"Fig. {block.anchor.replace('FIG ', '')}. ").bold = True
+        cap.add_run(f"Fig. {_anchor_number(block.anchor)}. ").bold = True
         cap.add_run(block.caption)
         self._exit_wide()
 
@@ -370,7 +402,7 @@ class DocxBuilder:
         # Caption above the table (IEEE convention: table caption before table)
         cap = self.doc.add_paragraph(style=S.FIGURE_CAPTION)
         cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        cap.add_run(f"TABLE {block.anchor.replace('TABLE ', '')}").bold = True
+        cap.add_run(f"TABLE {_anchor_roman(block.anchor)}").bold = True
         cap.add_run(f"  {block.caption}")
 
         tbl = self.doc.add_table(rows=len(block.rows), cols=len(block.rows[0]))
@@ -462,7 +494,7 @@ class DocxBuilder:
             p.add_run(block.latex)
 
         # Equation number (right-aligned)
-        eq_num = block.anchor.replace("EQ ", "")
+        eq_num = _anchor_number(block.anchor)
         p = self.doc.add_paragraph(style=S.EQUATION)
         p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
         p.add_run(f"({eq_num})")

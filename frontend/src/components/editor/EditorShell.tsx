@@ -14,6 +14,22 @@ import type { PaperForm } from '@/types/paper-form';
 const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X'];
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
+// IEEE table captions use Roman numerals ("TABLE I", not "TABLE 1"), matching
+// the engine's docx output (docx_builder.py's _anchor_roman) — kept as a
+// standalone converter here since ROMAN above is capped at 10 entries.
+const ROMAN_NUMERALS: [number, string][] = [
+  [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+  [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+  [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+];
+function toRoman(n: number): string {
+  let result = '';
+  for (const [value, symbol] of ROMAN_NUMERALS) {
+    while (n >= value) { result += symbol; n -= value; }
+  }
+  return result;
+}
+
 /** Build a rich, ordered DocPreview from the form (no Markdown parsing needed). */
 function formToPreview(form: PaperForm): DocPreview {
   // Defensive: treat any missing arrays as empty so stale localStorage never crashes
@@ -76,7 +92,7 @@ function formToPreview(form: PaperForm): DocPreview {
             tableCount++;
             blocks.push({
               kind: 'table',
-              label: `TABLE ${tableCount}`,
+              label: `TABLE ${toRoman(tableCount)}`,
               caption: item.caption?.trim() ?? '',
               rows,
               headerRow: item.headerRow,

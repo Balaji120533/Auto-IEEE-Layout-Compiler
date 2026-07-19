@@ -20,6 +20,7 @@ class Job:
         self.status = JobStatus.PENDING
         self.messages: list[str] = []
         self.artifacts: dict[str, str] = {}
+        self.warnings: list[dict[str, str]] = []  # [{level, anchor, message}]
         self.error: str | None = None
         self.created_at = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)
@@ -31,6 +32,7 @@ class Job:
             "status": self.status.value,
             "messages": self.messages,
             "artifacts": self.artifacts,
+            "warnings": self.warnings,
             "error": self.error,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
@@ -54,6 +56,13 @@ class JobStore:
         job.messages.append(message)
         job.updated_at = datetime.now(timezone.utc)
         self._broadcast(job_id, {"type": "progress", "message": message})
+
+    def push_warning(self, job_id: str, level: str, anchor: str, message: str) -> None:
+        job = self._jobs[job_id]
+        warning = {"level": level, "anchor": anchor, "message": message}
+        job.warnings.append(warning)
+        job.updated_at = datetime.now(timezone.utc)
+        self._broadcast(job_id, {"type": "warning", **warning})
 
     def set_running(self, job_id: str) -> None:
         job = self._jobs[job_id]

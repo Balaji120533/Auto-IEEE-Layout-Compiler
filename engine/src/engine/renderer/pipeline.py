@@ -20,11 +20,17 @@ class RenderPipeline:
         storage_base: Path,
         output_dir: Path,
         progress: Callable[[str], None],
+        warn: Callable[[str, str, str], None] | None = None,
     ) -> None:
         self.model = model
         self.storage_base = storage_base
         self.output_dir = output_dir
         self.progress = progress
+        # (level, anchor, message) -> recorded as structured job data, not just
+        # a log line, so the frontend can list preflight issues distinctly
+        # from ordinary progress messages. No-op default keeps the CLI harness
+        # (which only cares about console output) working unchanged.
+        self.warn = warn or (lambda level, anchor, message: None)
 
     async def run(self) -> dict[str, str]:
         artifacts: dict[str, str] = {}
@@ -34,6 +40,7 @@ class RenderPipeline:
         warnings = check_images(self.model, self.storage_base)
         for w in warnings:
             self.progress(f"  Preflight {w}")
+            self.warn(w.level, w.anchor, w.message)
 
         # 2 — Render math equations to PNG
         eq_blocks = [b for b in self.model.blocks if isinstance(b, EquationBlock)]
@@ -66,6 +73,7 @@ class RenderPipeline:
             warnings = check_pdf_pages(pdf_path)
             for w in warnings:
                 self.progress(f"  Preflight {w}")
+                self.warn(w.level, w.anchor, w.message)
 
         return artifacts
 

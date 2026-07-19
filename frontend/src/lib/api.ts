@@ -8,11 +8,18 @@ export interface Project {
   imageRefs: string[];
 }
 
+export interface PreflightWarning {
+  level: string;
+  anchor: string;
+  message: string;
+}
+
 export interface JobStatus {
   id: string;
   status: 'pending' | 'running' | 'done' | 'failed';
   messages: string[];
   artifacts: Record<string, string>;
+  warnings: PreflightWarning[];
   error?: string;
 }
 

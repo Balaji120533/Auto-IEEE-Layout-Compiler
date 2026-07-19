@@ -3,11 +3,18 @@ import { STORAGE_ROOT } from './object-storage';
 
 const ENGINE_URL = process.env.ENGINE_URL ?? 'http://localhost:8000';
 
+export interface PreflightWarning {
+  level: string;
+  anchor: string;
+  message: string;
+}
+
 export interface JobStatus {
   id: string;
   status: string;
   messages: string[];
   artifacts: Record<string, string>;
+  warnings: PreflightWarning[];
   error?: string;
 }
 
