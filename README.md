@@ -70,7 +70,13 @@ the Python side makes **zero** inference decisions. It's defined in
 - [pnpm](https://pnpm.io/) 9+
 - Python 3.11+
 - [uv](https://github.com/astral-sh/uv) (Python package manager)
-- [LibreOffice](https://www.libreoffice.org/) (headless — needed for PDF output)
+- **PDF output (optional)** — `.docx` always works with none of the below.
+  Either [LibreOffice](https://www.libreoffice.org/) (headless, local, no
+  install size you don't want) **or** a free
+  [CloudConvert](https://cloudconvert.com/) API key (25 conversions/day,
+  uploads your document to their servers) — see
+  [`engine/.env.example`](engine/.env.example). If neither is set up, compile
+  still produces the `.docx`, just no `.pdf`.
 
 **Install & run**
 

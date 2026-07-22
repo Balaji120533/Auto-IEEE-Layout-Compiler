@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 import asyncio
-import subprocess
-import shutil
 from pathlib import Path
 from typing import Callable
 
 from engine.math.matplotlib_backend import MatplotlibMathBackend
+from engine.pdf import select_backend
 from engine.preflight.checks import check_images, check_pdf_pages
 from engine.renderer.docx_builder import DocxBuilder
 from engine.schema import DocumentModel, EquationBlock
@@ -78,34 +77,7 @@ class RenderPipeline:
         return artifacts
 
     async def _convert_to_pdf(self, docx_path: Path) -> Path | None:
-        soffice = shutil.which("soffice") or shutil.which("libreoffice")
-        if not soffice:
-            self.progress("LibreOffice not found — skipping PDF conversion.")
+        backend = select_backend(self.progress)
+        if backend is None:
             return None
-
-        self.progress("Converting DOCX → PDF via LibreOffice...")
-        cmd = [
-            soffice,
-            "--headless",
-            "--convert-to", "pdf",
-            "--outdir", str(self.output_dir),
-            str(docx_path),
-        ]
-        proc = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        _, stderr = await proc.communicate()
-
-        if proc.returncode != 0:
-            self.progress(f"LibreOffice error: {stderr.decode()[:200]}")
-            return None
-
-        pdf_path = self.output_dir / "output.pdf"
-        if pdf_path.exists():
-            self.progress(f"PDF saved → {pdf_path.name}")
-            return pdf_path
-
-        self.progress("LibreOffice ran but PDF file not found.")
-        return None
+        return await backend.convert(docx_path, self.output_dir)
