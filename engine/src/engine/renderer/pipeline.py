@@ -20,6 +20,7 @@ class RenderPipeline:
         output_dir: Path,
         progress: Callable[[str], None],
         warn: Callable[[str, str, str], None] | None = None,
+        want_pdf: bool = True,
     ) -> None:
         self.model = model
         self.storage_base = storage_base
@@ -30,6 +31,10 @@ class RenderPipeline:
         # from ordinary progress messages. No-op default keeps the CLI harness
         # (which only cares about console output) working unchanged.
         self.warn = warn or (lambda level, anchor, message: None)
+        # PDF conversion costs a conversion-service credit (CloudConvert) or
+        # local LibreOffice time; let the caller confirm the docx first and
+        # opt into PDF separately instead of always spending it.
+        self.want_pdf = want_pdf
 
     async def run(self) -> dict[str, str]:
         artifacts: dict[str, str] = {}
@@ -65,14 +70,17 @@ class RenderPipeline:
         artifacts["output.docx"] = str(docx_path)
         self.progress(f"DOCX saved → {docx_path.name}")
 
-        # 4 — Convert to PDF via LibreOffice headless
-        pdf_path = await self._convert_to_pdf(docx_path)
-        if pdf_path:
-            artifacts["output.pdf"] = str(pdf_path)
-            warnings = check_pdf_pages(pdf_path)
-            for w in warnings:
-                self.progress(f"  Preflight {w}")
-                self.warn(w.level, w.anchor, w.message)
+        # 4 — Convert to PDF via LibreOffice headless (skipped unless requested)
+        if self.want_pdf:
+            pdf_path = await self._convert_to_pdf(docx_path)
+            if pdf_path:
+                artifacts["output.pdf"] = str(pdf_path)
+                warnings = check_pdf_pages(pdf_path)
+                for w in warnings:
+                    self.progress(f"  Preflight {w}")
+                    self.warn(w.level, w.anchor, w.message)
+        else:
+            self.progress("Skipping PDF conversion (not requested).")
 
         return artifacts
 

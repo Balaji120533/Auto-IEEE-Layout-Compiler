@@ -18,14 +18,23 @@ export interface JobStatus {
   error?: string;
 }
 
+export interface CompileFormats {
+  docx?: boolean;
+  pdf?: boolean;
+}
+
 export const engineClient = {
-  async compile(model: DocumentModel): Promise<{ jobId: string }> {
+  async compile(model: DocumentModel, formats?: CompileFormats): Promise<{ jobId: string }> {
     const res = await fetch(`${ENGINE_URL}/compile`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         document: model,
         storage_base: STORAGE_ROOT,
+        // Default: docx always on, pdf off — matches the "confirm docx first,
+        // then spend a PDF conversion credit" workflow the UI offers.
+        want_docx: formats?.docx ?? true,
+        want_pdf: formats?.pdf ?? false,
       }),
     });
     if (!res.ok) {

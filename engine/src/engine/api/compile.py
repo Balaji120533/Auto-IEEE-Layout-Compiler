@@ -19,6 +19,8 @@ STORAGE_ROOT = Path(__file__).parent.parent.parent.parent.parent.parent / "gatew
 class CompileRequest(BaseModel):
     document: DocumentModel
     storage_base: str | None = None  # override path for image resolution
+    want_docx: bool = True
+    want_pdf: bool = False
 
 
 class CompileResponse(BaseModel):
@@ -35,7 +37,7 @@ async def compile_document(req: CompileRequest) -> CompileResponse:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     asyncio.create_task(
-        run_compile_job(job.id, req.document, storage_base, output_dir)
+        run_compile_job(job.id, req.document, storage_base, output_dir, req.want_pdf)
     )
 
     return CompileResponse(job_id=job.id, status=job.status.value)

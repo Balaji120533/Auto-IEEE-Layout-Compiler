@@ -14,6 +14,11 @@ export interface PreflightWarning {
   message: string;
 }
 
+export interface CompileFormats {
+  docx: boolean;
+  pdf: boolean;
+}
+
 export interface JobStatus {
   id: string;
   status: 'pending' | 'running' | 'done' | 'failed';
@@ -65,11 +70,11 @@ export const api = {
     return r.json();
   },
 
-  async compile(id: string): Promise<{ jobId: string; projectId: string }> {
+  async compile(id: string, formats?: CompileFormats): Promise<{ jobId: string; projectId: string }> {
     const r = await fetch(`${GATEWAY}/projects/${id}/compile`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: '{}',
+      body: JSON.stringify(formats ? { formats } : {}),
     });
     if (!r.ok) {
       const err = await r.json().catch(() => ({ error: 'Unknown error' }));
@@ -78,11 +83,11 @@ export const api = {
     return r.json();
   },
 
-  async compileModel(id: string, model: unknown): Promise<{ jobId: string; projectId: string }> {
+  async compileModel(id: string, model: unknown, formats?: CompileFormats): Promise<{ jobId: string; projectId: string }> {
     const r = await fetch(`${GATEWAY}/projects/${id}/compile-model`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model }),
+      body: JSON.stringify(formats ? { model, formats } : { model }),
     });
     if (!r.ok) {
       const body = await r.json().catch(() => ({ error: 'Unknown error' }));

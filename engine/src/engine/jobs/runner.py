@@ -14,8 +14,9 @@ async def run_compile_job(
     model: DocumentModel,
     storage_base: Path,
     output_dir: Path,
+    want_pdf: bool = False,
 ) -> None:
-    """Background task: render docx + pdf, update the job store throughout."""
+    """Background task: render docx (+ optional pdf), update the job store throughout."""
     def progress(msg: str) -> None:
         job_store.push_message(job_id, msg)
 
@@ -24,7 +25,7 @@ async def run_compile_job(
 
     job_store.set_running(job_id)
     try:
-        pipeline = RenderPipeline(model, storage_base, output_dir, progress, warn)
+        pipeline = RenderPipeline(model, storage_base, output_dir, progress, warn, want_pdf=want_pdf)
         artifacts = await pipeline.run()
         job_store.set_done(job_id, artifacts)
     except Exception as exc:

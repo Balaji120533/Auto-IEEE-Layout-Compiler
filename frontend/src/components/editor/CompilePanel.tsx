@@ -1,14 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CompileState } from '@/hooks/useCompileJob';
 import { api } from '@/lib/api';
+import type { CompileFormats } from '@/lib/api';
 
 interface Props {
   state: CompileState;
   projectId: string | null;
   projectError: string | null;
-  onCompile: () => void;
+  onCompile: (formats: CompileFormats) => void;
   onReset: () => void;
 }
 
@@ -19,6 +21,10 @@ export default function CompilePanel({ state, projectError, onCompile, onReset }
   const isDone = phase === 'done';
   const isFailed = phase === 'failed';
 
+  const [wantDocx, setWantDocx] = useState(true);
+  const [wantPdf, setWantPdf] = useState(false);
+  const noFormatSelected = !wantDocx && !wantPdf;
+
   return (
     <div className="flex flex-col h-full">
       {/* Project bootstrap error — compiling will retry automatically */}
@@ -28,14 +34,38 @@ export default function CompilePanel({ state, projectError, onCompile, onReset }
         </div>
       )}
 
+      {/* Format selection */}
+      {(isIdle || isFailed) && (
+        <div className="flex items-center gap-4 px-4 pt-3 text-sm text-gray-600">
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={wantDocx}
+              onChange={e => setWantDocx(e.target.checked)}
+              className="accent-gray-900"
+            />
+            Word (.docx)
+          </label>
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={wantPdf}
+              onChange={e => setWantPdf(e.target.checked)}
+              className="accent-gray-900"
+            />
+            PDF (.pdf)
+          </label>
+        </div>
+      )}
+
       {/* Compile button bar */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
         <button
-          onClick={isIdle || isFailed ? onCompile : onReset}
-          disabled={isCompiling}
+          onClick={isIdle || isFailed ? () => onCompile({ docx: wantDocx, pdf: wantPdf }) : onReset}
+          disabled={isCompiling || ((isIdle || isFailed) && noFormatSelected)}
           className={[
             'flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all',
-            isCompiling
+            isCompiling || ((isIdle || isFailed) && noFormatSelected)
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : isDone
                 ? 'bg-gray-800 text-white hover:bg-gray-700'

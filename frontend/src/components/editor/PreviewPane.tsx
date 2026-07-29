@@ -6,13 +6,14 @@ import PaperPreview from './PaperPreview';
 import CompilePanel from './CompilePanel';
 import type { DocPreview } from '@/lib/parsePreview';
 import type { CompileState } from '@/hooks/useCompileJob';
+import type { CompileFormats } from '@/lib/api';
 
 interface Props {
   preview: DocPreview;
   compileState: CompileState;
   projectId: string | null;
   projectError: string | null;
-  onCompile: () => void;
+  onCompile: (formats: CompileFormats) => void;
   onReset: () => void;
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { api, type PreflightWarning } from '@/lib/api';
+import { api, type PreflightWarning, type CompileFormats } from '@/lib/api';
 
 export type JobPhase = 'idle' | 'compiling' | 'done' | 'failed';
 
@@ -20,16 +20,16 @@ export function useCompileJob() {
   const [state, setState] = useState<CompileState>(IDLE);
   const es = useRef<EventSource | null>(null);
 
-  const compile = useCallback(async (projectId: string, model?: unknown) => {
+  const compile = useCallback(async (projectId: string, model?: unknown, formats?: CompileFormats) => {
     es.current?.close();
     setState({ phase: 'compiling', jobId: '', messages: ['Submitting job…'], artifacts: {}, warnings: [] });
 
     let jobId: string;
     try {
       if (model) {
-        ({ jobId } = await api.compileModel(projectId, model));
+        ({ jobId } = await api.compileModel(projectId, model, formats));
       } else {
-        ({ jobId } = await api.compile(projectId));
+        ({ jobId } = await api.compile(projectId, formats));
       }
     } catch (err: any) {
       setState({ phase: 'failed', jobId: '', messages: [], artifacts: {}, warnings: [], error: err.message });

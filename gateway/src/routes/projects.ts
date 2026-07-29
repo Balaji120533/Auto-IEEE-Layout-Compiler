@@ -80,7 +80,10 @@ export async function projectRoutes(server: FastifyInstance) {
   // ── POST /projects/:id/compile ─────────────────────────────────────────────
   server.post<{
     Params: { id: string };
-    Body?: { compile_options?: { page_size?: string; math_backend?: string } };
+    Body?: {
+      compile_options?: { page_size?: string; math_backend?: string };
+      formats?: { docx?: boolean; pdf?: boolean };
+    };
   }>('/projects/:id/compile', async (req, reply) => {
     const project = projectStore.get(req.params.id);
     if (!project) return reply.status(404).send({ error: 'Project not found' });
@@ -107,7 +110,7 @@ export async function projectRoutes(server: FastifyInstance) {
     // Submit to engine
     let jobId: string;
     try {
-      ({ jobId } = await engineClient.compile(model));
+      ({ jobId } = await engineClient.compile(model, req.body?.formats));
     } catch (err: any) {
       return reply.status(502).send({ error: `Engine error: ${err.message}` });
     }
@@ -120,7 +123,7 @@ export async function projectRoutes(server: FastifyInstance) {
   // Skips Markdown parsing entirely — the frontend builds the model directly.
   server.post<{
     Params: { id: string };
-    Body: { model: Record<string, unknown> };
+    Body: { model: Record<string, unknown>; formats?: { docx?: boolean; pdf?: boolean } };
   }>('/projects/:id/compile-model', async (req, reply) => {
     const project = projectStore.get(req.params.id);
     if (!project) return reply.status(404).send({ error: 'Project not found' });
@@ -131,7 +134,7 @@ export async function projectRoutes(server: FastifyInstance) {
 
     let jobId: string;
     try {
-      ({ jobId } = await engineClient.compile(req.body.model as any));
+      ({ jobId } = await engineClient.compile(req.body.model as any, req.body.formats));
     } catch (err: any) {
       return reply.status(502).send({ error: `Engine error: ${err.message}` });
     }

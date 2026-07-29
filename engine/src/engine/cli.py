@@ -16,6 +16,10 @@ import json
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from engine.renderer.pipeline import RenderPipeline
 from engine.schema import DocumentModel
 

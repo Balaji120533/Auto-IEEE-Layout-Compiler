@@ -8,6 +8,7 @@ import { formToModel } from '@/lib/formToModel';
 import FormEditor from '@/components/form/FormEditor';
 import PreviewPane from './PreviewPane';
 import { api } from '@/lib/api';
+import type { CompileFormats } from '@/lib/api';
 import type { DocPreview, PreviewBlock, PreviewSection } from '@/lib/parsePreview';
 import type { PaperForm } from '@/types/paper-form';
 
@@ -176,13 +177,13 @@ export default function EditorShell() {
 
   const preview = useMemo(() => formToPreview(project.form), [project.form]);
 
-  const handleCompile = async () => {
+  const handleCompile = async (formats: CompileFormats) => {
     // Self-heal: create a project on the fly if bootstrap failed or the
     // stored projectId is stale, instead of silently doing nothing.
     const id = await project.ensureProject().catch(() => null);
     if (!id) return;
     const model = formToModel(project.form);
-    await compileJob.compile(id, model);
+    await compileJob.compile(id, model, formats);
   };
 
   if (!project.isReady) {
