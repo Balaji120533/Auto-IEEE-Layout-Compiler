@@ -34,6 +34,7 @@ export interface PreviewReference {
 export interface DocPreview {
   title: string;
   authors: string[];
+  authorBlocks: string[][];  // per-author stacked lines: name, department, institution, city/country, email
   abstract: string;
   keywords: string[];
   sections: PreviewSection[];
@@ -50,6 +51,7 @@ export interface DocPreview {
 const EMPTY_PREVIEW: DocPreview = {
   title: '',
   authors: [],
+  authorBlocks: [],
   abstract: '',
   keywords: [],
   sections: [],
@@ -102,6 +104,45 @@ export function parsePreview(markdown: string): DocPreview {
     preview.authors = authorBlock[1].trim().split('\n')
       .map(l => l.replace(/<[^>]+>/, '').replace(/\[[^\]]+\]$/, '').trim())
       .filter(Boolean);
+  }
+
+  // Extract affiliations: "key | department | institution | city | country"
+  const affiliationsByKey = new Map<string, { department?: string; institution?: string; city?: string; country?: string }>();
+  const affBlock = markdown.match(/:::affiliations\r?\n([\s\S]*?):::/);
+  if (affBlock) {
+    for (const rawLine of affBlock[1].trim().split('\n')) {
+      const cols = rawLine.split('|').map(c => c.trim());
+      if (cols.length < 2 || !cols[0]) continue;
+      const [key, department, institution, city, country] = cols;
+      affiliationsByKey.set(key, { department, institution, city, country });
+    }
+  }
+
+  // Build per-author stacked line blocks: name, department, institution, city/country, email
+  if (authorBlock) {
+    preview.authorBlocks = authorBlock[1].trim().split('\n')
+      .map(rawLine => rawLine.trim())
+      .filter(Boolean)
+      .map(rawLine => {
+        const email = rawLine.match(/<([^>]+)>/)?.[1];
+        const refKeys = (rawLine.match(/\[([^\]]+)\]\s*$/)?.[1] ?? '')
+          .split(',').map(s => s.trim()).filter(Boolean);
+        const name = rawLine.replace(/<[^>]+>/, '').replace(/\[[^\]]+\]\s*$/, '').trim();
+
+        const affs = refKeys.map(k => affiliationsByKey.get(k)).filter((a): a is NonNullable<typeof a> => !!a);
+
+        const lines: string[] = [name];
+        for (const a of affs) if (a.department) lines.push(a.department);
+        for (const a of affs) if (a.institution) lines.push(a.institution);
+        for (const a of affs) {
+          if (a.city && a.country) lines.push(`${a.city}, ${a.country}`);
+          else if (a.country) lines.push(a.country);
+          else if (a.city) lines.push(a.city);
+        }
+        if (email) lines.push(email);
+
+        return lines;
+      });
   }
 
   // References — parse each "- key: ..." entry's fields for a real preview line

@@ -36,6 +36,7 @@ function formToPreview(form: PaperForm): DocPreview {
   // Defensive: treat any missing arrays as empty so stale localStorage never crashes
   const safeSections    = Array.isArray(form?.sections)    ? form.sections    : [];
   const safeAuthors     = Array.isArray(form?.authors)     ? form.authors     : [];
+  const safeAffiliations = Array.isArray(form?.affiliations) ? form.affiliations : [];
   const safeReferences  = Array.isArray(form?.references)  ? form.references  : [];
 
   const blocks: PreviewBlock[] = [];
@@ -143,9 +144,33 @@ function formToPreview(form: PaperForm): DocPreview {
 
   const hasContent = !!(title || abstract || safeSections.some(s => s.heading));
 
+  const affiliationsById = new Map(safeAffiliations.map(a => [a.id, a]));
+  const authorBlocks = safeAuthors
+    .filter(a => a.name?.trim())
+    .map(a => {
+      const affs = (a.affiliationKeys ?? [])
+        .map(k => affiliationsById.get(k))
+        .filter((x): x is NonNullable<typeof x> => !!x);
+
+      const lines: string[] = [a.name.trim()];
+      for (const aff of affs) if (aff.department?.trim()) lines.push(aff.department.trim());
+      for (const aff of affs) if (aff.institution?.trim()) lines.push(aff.institution.trim());
+      for (const aff of affs) {
+        const city = aff.city?.trim();
+        const country = aff.country?.trim();
+        if (city && country) lines.push(`${city}, ${country}`);
+        else if (country) lines.push(country);
+        else if (city) lines.push(city);
+      }
+      if (a.email?.trim()) lines.push(a.email.trim());
+
+      return lines;
+    });
+
   return {
     title,
     authors: safeAuthors.map(a => a.name).filter(Boolean),
+    authorBlocks,
     abstract,
     keywords: keywords.split(',').map(k => k.trim()).filter(Boolean),
     sections,

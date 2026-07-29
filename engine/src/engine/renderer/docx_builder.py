@@ -205,37 +205,66 @@ class DocxBuilder:
             p = self.doc.add_paragraph(meta.conference, style=S.PAPER_SUBTITLE)
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-        # Authors (comma-separated on one line, then affiliations below)
-        author_names = ", ".join(a.name for a in meta.authors)
-        p = self.doc.add_paragraph(author_names, style=S.AUTHOR)
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        # Authors sit side by side in rows of up to AUTHORS_PER_ROW, each author
+        # in their own column: name, department, institution, city/country,
+        # e-mail stacked one per line (fields that don't apply are skipped).
+        # A borderless table gives true side-by-side columns; a blank paragraph
+        # between rows separates one row of authors from the next.
+        aff_by_key = {aff.key: aff for aff in meta.affiliations}
+        AUTHORS_PER_ROW = 3
 
-        # Affiliations grouped by unique key: every author sharing an affiliation
-        # is listed together on one line (IEEE convention), instead of repeating
-        # the affiliation once per author — keeps the title block compact.
-        for aff in meta.affiliations:
-            authors_here = [a for a in meta.authors if aff.key in a.affiliation_refs]
-            if not authors_here:
-                continue
+        def author_lines(author) -> list[str]:
+            affs = [aff_by_key[key] for key in author.affiliation_refs if key in aff_by_key]
+            lines = [author.name]
+            for aff in affs:
+                if aff.department:
+                    lines.append(aff.department)
+            for aff in affs:
+                if aff.institution:
+                    lines.append(aff.institution)
+            for aff in affs:
+                if aff.city and aff.country:
+                    lines.append(f"{aff.city}, {aff.country}")
+                elif aff.country:
+                    lines.append(aff.country)
+                elif aff.city:
+                    lines.append(aff.city)
+            if author.email:
+                lines.append(author.email)
+            return lines
 
-            parts = [aff.institution]
-            if aff.department:
-                parts.insert(0, aff.department)
-            if aff.city and aff.country:
-                parts.append(f"{aff.city}, {aff.country}")
-            elif aff.country:
-                parts.append(aff.country)
+        authors = meta.authors
+        rows = [authors[i:i + AUTHORS_PER_ROW] for i in range(0, len(authors), AUTHORS_PER_ROW)]
 
-            names = ", ".join(a.name for a in authors_here)
-            line = f"{names} are with {', '.join(parts)}" if len(authors_here) > 1 \
-                else f"{names} is with {', '.join(parts)}"
-            p = self.doc.add_paragraph(line, style=S.AFFILIATION)
-            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        for row_idx, row_authors in enumerate(rows):
+            n_cols = len(row_authors)
+            table = self.doc.add_table(rows=1, cols=n_cols)
+            table.autofit = False
+            table.alignment = WD_TABLE_ALIGNMENT.CENTER
+            _strip_table_borders(table)
+            _set_table_layout_fixed(table)
 
-            emails = [a.email for a in authors_here if a.email]
-            if emails:
-                ep = self.doc.add_paragraph(f"(e-mail: {'; '.join(emails)}).", style=S.AFFILIATION)
-                ep.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            col_width = Inches(S.FULL_WIDTH_IN / n_cols)
+            for col in table.columns:
+                col.width = col_width
+
+            for cell, author in zip(table.rows[0].cells, row_authors):
+                cell.width = col_width
+                lines = author_lines(author)
+
+                first_para = cell.paragraphs[0]
+                first_para.style = self.doc.styles[S.AUTHOR]
+                first_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                first_para.text = lines[0]
+
+                for line in lines[1:]:
+                    lp = cell.add_paragraph(line, style=S.AFFILIATION)
+                    lp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+            # Gap paragraph after every row — separates rows from each other,
+            # and separates the last row from whatever content follows.
+            gap = self.doc.add_paragraph()
+            gap.paragraph_format.space_after = Pt(12)
 
     def _render_abstract_and_keywords(self, meta: DocumentMetadata) -> None:
         """Abstract + Index Terms, confined to the left column's width so they sit

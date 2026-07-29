@@ -53,6 +53,12 @@ const HEADING_CLS: Record<1 | 2 | 3, string> = {
   3: 'text-[7.5px] italic mt-2 mb-0.5',
 };
 
+function chunk<T>(items: T[], size: number): T[][] {
+  const rows: T[][] = [];
+  for (let i = 0; i < items.length; i += size) rows.push(items.slice(i, i + size));
+  return rows;
+}
+
 function headingText(b: Extract<PreviewBlock, { kind: 'heading' }>): string {
   if (!b.numbering) return b.text;
   if (b.level === 1) return `${b.numbering}. ${b.text.toUpperCase()}`;
@@ -383,10 +389,20 @@ export default function PaperPreview({ preview }: Props) {
                 {preview.title || 'Untitled Paper'}
               </h1>
 
-              {preview.authors.length > 0 && (
-                <p className="text-[8.5px] text-center text-gray-700 mb-0.5">
-                  {preview.authors.join(', ')}
-                </p>
+              {preview.authorBlocks.length > 0 && (
+                <div className="mb-0.5">
+                  {chunk(preview.authorBlocks, 3).map((row, r) => (
+                    <div key={r} className="flex justify-center gap-x-6 mb-2 last:mb-0">
+                      {row.map((lines, i) => (
+                        <div key={i} className="flex-1 text-[8.5px] text-center text-gray-700 leading-tight">
+                          {lines.map((line, j) => (
+                            <p key={j}>{line}</p>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           )}
