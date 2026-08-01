@@ -73,6 +73,17 @@ def _anchor_roman(anchor: str) -> str:
     return _to_roman(int(digits)) if digits.isdigit() else digits
 
 
+def _normalize_text(text: str) -> str:
+    """Collapse embedded newlines (e.g. from text pasted out of a PDF, which
+    hard-wraps every line) to spaces. python-docx turns a literal "\\n" in run
+    text into a hard line break (<w:br/>), and with paragraph justification
+    Word then force-justifies each of those pasted-in lines individually,
+    stretching a few words across the full column width. The browser preview
+    already collapses "\\n" to whitespace by default (plain HTML text-flow),
+    so this keeps the docx matching what was always shown there."""
+    return re.sub(r"\s*\n\s*", " ", text).strip()
+
+
 def _fit_picture_size(img_path: Path, max_width_in: float, max_height_in: float) -> tuple[float, float] | None:
     """Compute (width_in, height_in) that fits the image inside the given box while
     preserving its aspect ratio. Returns None if the image can't be read (caller
@@ -151,6 +162,40 @@ def _set_table_layout_fixed(table) -> None:
     layout = OxmlElement("w:tblLayout")
     layout.set(qn("w:type"), "fixed")
     tbl_pr.append(layout)
+
+
+def _set_table_width_dxa(table, col_widths_dxa: list[int]) -> None:
+    """Authoritatively set the table's width in twips (dxa).
+
+    python-docx's `cell.width = ...` only rewrites each cell's `w:tcW` — it
+    never touches `w:tblGrid` or the table-level `w:tblW`. With `tblLayout
+    type="fixed"`, Word uses `tblGrid`/`tblW` (not `tcW`) to lay out the
+    table, so leaving them at their template-inherited "full page width"
+    defaults makes Word render the box far wider than the narrow column the
+    cell width implies — which, combined with paragraph-level JUSTIFY on
+    short text, produces the huge inter-word gaps seen in the abstract box.
+    Both must be rewritten to match `cell.width` for the two to agree.
+    """
+    total_dxa = sum(col_widths_dxa)
+
+    tbl_pr = table._tbl.tblPr
+    tblw = tbl_pr.find(qn("w:tblW"))
+    if tblw is None:
+        tblw = OxmlElement("w:tblW")
+        tbl_pr.append(tblw)
+    tblw.set(qn("w:w"), str(total_dxa))
+    tblw.set(qn("w:type"), "dxa")
+
+    grid = table._tbl.find(qn("w:tblGrid"))
+    if grid is None:
+        grid = OxmlElement("w:tblGrid")
+        table._tbl.insert(0, grid)
+    for gc in list(grid):
+        grid.remove(gc)
+    for w in col_widths_dxa:
+        gc = OxmlElement("w:gridCol")
+        gc.set(qn("w:w"), str(w))
+        grid.append(gc)
 
 
 class DocxBuilder:
@@ -247,6 +292,8 @@ class DocxBuilder:
             col_width = Inches(S.FULL_WIDTH_IN / n_cols)
             for col in table.columns:
                 col.width = col_width
+            col_width_dxa = int(S.FULL_WIDTH_IN / n_cols * 1440)
+            _set_table_width_dxa(table, [col_width_dxa] * n_cols)
 
             for cell, author in zip(table.rows[0].cells, row_authors):
                 cell.width = col_width
@@ -258,8 +305,17 @@ class DocxBuilder:
                 first_para.text = lines[0]
 
                 for line in lines[1:]:
-                    lp = cell.add_paragraph(line, style=S.AFFILIATION)
+                    lp = cell.add_paragraph(style=S.AFFILIATION)
                     lp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    # The template's "Affiliation" style has no explicit font
+                    # size (verified: neither the style nor docDefaults set
+                    # w:sz), so Word falls back to its own default (10pt) —
+                    # bigger than intended, which wraps these lines inside the
+                    # narrow author columns and roughly doubles the author
+                    # block's height. Set 9pt explicitly to match Abstract's
+                    # known-correct secondary-text size.
+                    run = lp.add_run(line)
+                    run.font.size = Pt(9)
 
             # Gap paragraph after every row — separates rows from each other,
             # and separates the last row from whatever content follows.
@@ -278,6 +334,7 @@ class DocxBuilder:
         cell.width = Inches(S.COL_WIDTH_IN)
         _strip_table_borders(box)
         _set_table_layout_fixed(box)
+        _set_table_width_dxa(box, [int(S.COL_WIDTH_IN * 1440)])
 
         # docx creates one empty paragraph in a new cell; reuse it for Abstract.
         abstract_para = cell.paragraphs[0]
@@ -286,7 +343,7 @@ class DocxBuilder:
         run = abstract_para.add_run("Abstract—")
         run.bold = True
         run.italic = True
-        abstract_para.add_run(meta.abstract)
+        abstract_para.add_run(_normalize_text(meta.abstract))
 
         # Keywords
         kw_para = cell.add_paragraph(style=S.KEYWORDS)
@@ -294,7 +351,7 @@ class DocxBuilder:
         run = kw_para.add_run("Index Terms—")
         run.bold = True
         run.italic = True
-        kw_para.add_run(", ".join(meta.keywords))
+        kw_para.add_run(_normalize_text(", ".join(meta.keywords)))
 
     # ── Section break helpers ─────────────────────────────────────────────────
 
@@ -354,7 +411,9 @@ class DocxBuilder:
         """Append `text` to `para`, converting [CITE n] anchors into IEEE
         in-text citation brackets [n]. An anchor whose number has no matching
         reference renders as "[?]" so the problem is visible in the output.
-        Text between anchors is emitted verbatim; no other transformation."""
+        Text between anchors is emitted verbatim aside from newline collapsing
+        (see `_normalize_text`)."""
+        text = _normalize_text(text)
         pos = 0
         for m in _CITE_RE.finditer(text):
             if m.start() > pos:
