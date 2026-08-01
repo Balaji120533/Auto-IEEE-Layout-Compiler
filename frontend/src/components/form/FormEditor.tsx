@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useSession, signOut } from 'next-auth/react';
 import type { PaperForm } from '@/types/paper-form';
 import type { SaveStatus, SavedProject } from '@/hooks/useProject';
 import PaperInfoForm from './PaperInfoForm';
@@ -76,7 +77,11 @@ export default function FormEditor({
 }: Props) {
   const [tab, setTab] = useState<Tab>('info');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const { text: saveText, color: saveColor } = SAVE_LABEL[saveStatus];
+  const { data: session } = useSession();
+  const user = session?.user;
+  const initial = (user?.name || user?.email || '?').trim().charAt(0).toUpperCase();
 
   return (
     <div className="flex flex-col h-full bg-white relative overflow-hidden">
@@ -175,16 +180,60 @@ export default function FormEditor({
                 ))
               }
             </div>
-            <div className="p-3 border-t border-gray-100">
+            <div className="p-3 border-t border-gray-100 space-y-2">
               <button
                 onClick={() => { onNewProject(); setSidebarOpen(false); }}
                 className="w-full py-2.5 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800 transition-colors"
               >
                 + New Paper
               </button>
+
+              {user && (
+                <div className="relative">
+                  <AnimatePresence>
+                    {profileMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 6 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
+                      >
+                        <button
+                          onClick={() => { setProfileMenuOpen(false); signOut({ callbackUrl: '/' }); }}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                          </svg>
+                          Sign out
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <button
+                    onClick={() => setProfileMenuOpen(o => !o)}
+                    className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <div className="w-8 h-8 flex-shrink-0 rounded-full bg-black text-white flex items-center justify-center text-xs font-semibold">
+                      {initial}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-800 truncate">{user.name || 'Account'}</p>
+                      <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
+                    </div>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="flex-shrink-0 text-gray-300">
+                      <polyline points="18 15 12 9 6 15" />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-          <div className="flex-1 bg-black/20" onClick={() => setSidebarOpen(false)} />
+          <div className="flex-1 bg-black/20" onClick={() => { setSidebarOpen(false); setProfileMenuOpen(false); }} />
         </motion.div>
       )}
     </div>
