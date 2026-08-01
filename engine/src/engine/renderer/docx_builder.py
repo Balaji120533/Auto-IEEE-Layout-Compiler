@@ -213,10 +213,15 @@ class DocxBuilder:
         self.doc = Document(str(TEMPLATE_PATH))
         body = self.doc.element.body
 
-        # Clear body content; replace with a clean 2-col body sectPr
+        # Clear body content; replace with a clean 2-col body sectPr.
+        # This final sectPr governs the LAST section — the 2-column body that
+        # starts at the abstract. It must be marked continuous: with no w:type
+        # OOXML defaults to "nextPage", which made Word begin that section on a
+        # fresh page, leaving the title/author block alone on page 1 with the
+        # abstract and everything after it pushed to page 2.
         for child in list(body):
             body.remove(child)
-        body.append(_make_sect_pr(2, continuous=False))
+        body.append(_make_sect_pr(2, continuous=True))
 
         # Section-break state: we start in the 1-col title section
         self._in_two_col = False
@@ -305,17 +310,8 @@ class DocxBuilder:
                 first_para.text = lines[0]
 
                 for line in lines[1:]:
-                    lp = cell.add_paragraph(style=S.AFFILIATION)
+                    lp = cell.add_paragraph(line, style=S.AFFILIATION)
                     lp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    # The template's "Affiliation" style has no explicit font
-                    # size (verified: neither the style nor docDefaults set
-                    # w:sz), so Word falls back to its own default (10pt) —
-                    # bigger than intended, which wraps these lines inside the
-                    # narrow author columns and roughly doubles the author
-                    # block's height. Set 9pt explicitly to match Abstract's
-                    # known-correct secondary-text size.
-                    run = lp.add_run(line)
-                    run.font.size = Pt(9)
 
             # Gap paragraph after every row — separates rows from each other,
             # and separates the last row from whatever content follows.
