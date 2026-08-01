@@ -3,61 +3,129 @@
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
+const FEATURES = [
+  {
+    title: 'Live preview',
+    body: 'A real two-column IEEE layout that updates as you type — see the finished page, not a guess.',
+  },
+  {
+    title: 'Deterministic compile',
+    body: 'Every rule is code, not a model. The same draft always produces the same document.',
+  },
+  {
+    title: 'Word and PDF',
+    body: 'Download a submission-ready .docx, a .pdf, or both — nothing leaves your machine until you say so.',
+  },
+];
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
 export default function Home() {
   const router = useRouter();
 
   return (
-    <main
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden grain"
-      style={{
-        background: [
-          'radial-gradient(ellipse at 18% 52%, rgba(165,148,210,0.82) 0%, transparent 52%)',
-          'radial-gradient(ellipse at 78% 42%, rgba(228,212,128,0.80) 0%, transparent 52%)',
-          'radial-gradient(ellipse at 55% 85%, rgba(210,195,155,0.50) 0%, transparent 45%)',
-          '#cec6a8',
-        ].join(', '),
-      }}
-    >
-      <motion.div
-        className="relative z-10 flex flex-col items-center gap-9 text-center px-6"
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.75, ease: 'easeOut' }}
-      >
-        <motion.h1
-          className="text-3xl sm:text-4xl font-light leading-snug tracking-wide text-white drop-shadow-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.7 }}
+    <main className="min-h-screen bg-white text-black">
+      {/* Hero */}
+      <section className="relative flex flex-col items-center justify-center px-6 pt-40 pb-32 text-center overflow-hidden">
+        <motion.p
+          className="text-sm font-medium tracking-tight text-gray-400 mb-5"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE }}
         >
-          Paste your draft.
+          Auto-IEEE Layout Compiler
+        </motion.p>
+
+        <motion.h1
+          className="text-[44px] sm:text-[64px] leading-[1.05] font-semibold tracking-tight max-w-3xl"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE, delay: 0.08 }}
+        >
+          Your draft.
           <br />
-          Download your{' '}
-          <span
-            style={{ color: '#f5e9a0' }}
-            className="font-normal"
-          >
-            paper.
-          </span>
+          <span className="text-gray-400">Perfectly typeset.</span>
         </motion.h1>
+
+        <motion.p
+          className="mt-6 text-lg sm:text-xl text-gray-500 max-w-xl leading-relaxed"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE, delay: 0.16 }}
+        >
+          Paste your title, authors, and sections. Get back a submission-ready,
+          double-column IEEE paper — no LaTeX, no Word wrangling.
+        </motion.p>
 
         <motion.button
           onClick={() => router.push('/editor')}
-          className="px-9 py-3 rounded-full text-white/95 text-sm font-medium tracking-wide shadow-md"
-          style={{
-            background: 'rgba(212, 162, 162, 0.52)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.22)',
-          }}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.35, duration: 0.55 }}
-          whileHover={{ scale: 1.05, background: 'rgba(212,162,162,0.68)' }}
+          className="mt-10 px-8 py-3.5 rounded-full bg-black text-white text-[15px] font-medium tracking-tight transition-colors hover:bg-gray-800"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE, delay: 0.26 }}
+          whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
         >
-          Get Started
+          Start writing →
         </motion.button>
-      </motion.div>
+
+        <motion.p
+          className="mt-4 text-xs text-gray-400"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          No account. No AI in the pipeline. Just your paper, formatted right.
+        </motion.p>
+      </section>
+
+      {/* Feature strip */}
+      <section className="border-t border-gray-100 px-6 py-24">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-8">
+          {FEATURES.map((f, i) => (
+            <motion.div
+              key={f.title}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.6, ease: EASE, delay: i * 0.08 }}
+            >
+              <h3 className="text-[17px] font-semibold tracking-tight mb-2">{f.title}</h3>
+              <p className="text-[15px] text-gray-500 leading-relaxed">{f.body}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Closing CTA */}
+      <section className="border-t border-gray-100 px-6 py-24 text-center">
+        <motion.h2
+          className="text-3xl sm:text-4xl font-semibold tracking-tight"
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.6, ease: EASE }}
+        >
+          Stop fighting your template.
+        </motion.h2>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.6, ease: EASE, delay: 0.1 }}
+        >
+          <button
+            onClick={() => router.push('/editor')}
+            className="mt-8 px-8 py-3.5 rounded-full bg-black text-white text-[15px] font-medium tracking-tight transition-colors hover:bg-gray-800"
+          >
+            Open the editor
+          </button>
+        </motion.div>
+      </section>
+
+      <footer className="px-6 py-10 text-center text-xs text-gray-300">
+        Auto-IEEE Layout Compiler
+      </footer>
     </main>
   );
 }

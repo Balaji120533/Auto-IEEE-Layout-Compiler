@@ -8,14 +8,15 @@ interface Props {
 }
 
 const label = 'block text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1';
-const input = 'w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-300 transition-colors bg-white';
+const input = 'w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors bg-white';
+const required = <span className="text-gray-300 normal-case font-normal">— required</span>;
 
 export default function PaperInfoForm({ form, onChange }: Props) {
   return (
     <div className="space-y-5 px-1">
       {/* Title */}
       <div>
-        <label className={label}>Paper Title <span className="text-red-400">*</span></label>
+        <label className={label}>Paper Title {required}</label>
         <input
           className={input}
           placeholder="e.g. Deep Learning for Edge Computing in IoT Networks"
@@ -26,7 +27,7 @@ export default function PaperInfoForm({ form, onChange }: Props) {
 
       {/* Conference */}
       <div>
-        <label className={label}>Conference / Journal <span className="text-gray-300">(optional)</span></label>
+        <label className={label}>Conference / Journal <span className="text-gray-300 normal-case font-normal">(optional)</span></label>
         <input
           className={input}
           placeholder="e.g. 2025 IEEE International Conference on Communications"
@@ -37,7 +38,7 @@ export default function PaperInfoForm({ form, onChange }: Props) {
 
       {/* Abstract */}
       <div>
-        <label className={label}>Abstract <span className="text-red-400">*</span></label>
+        <label className={label}>Abstract {required}</label>
         <textarea
           className={`${input} resize-none`}
           rows={6}
@@ -50,7 +51,7 @@ export default function PaperInfoForm({ form, onChange }: Props) {
 
       {/* Keywords */}
       <div>
-        <label className={label}>Keywords <span className="text-red-400">*</span></label>
+        <label className={label}>Keywords {required}</label>
         <input
           className={input}
           placeholder="edge computing, deep learning, IoT, neural networks"

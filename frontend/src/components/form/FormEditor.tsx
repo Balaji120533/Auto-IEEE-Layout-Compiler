@@ -21,18 +21,53 @@ interface Props {
 
 type Tab = 'info' | 'authors' | 'content' | 'references';
 
-const TABS: { id: Tab; label: string; emoji: string }[] = [
-  { id: 'info',       label: 'Paper',      emoji: '📄' },
-  { id: 'authors',    label: 'Authors',    emoji: '👥' },
-  { id: 'content',    label: 'Content',    emoji: '✏️' },
-  { id: 'references', label: 'References', emoji: '📚' },
+function IconDoc() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+    </svg>
+  );
+}
+function IconUsers() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+function IconEdit() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z" />
+    </svg>
+  );
+}
+function IconBook() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </svg>
+  );
+}
+
+const TABS: { id: Tab; label: string; Icon: () => React.JSX.Element }[] = [
+  { id: 'info',       label: 'Paper',      Icon: IconDoc },
+  { id: 'authors',    label: 'Authors',    Icon: IconUsers },
+  { id: 'content',    label: 'Content',    Icon: IconEdit },
+  { id: 'references', label: 'References', Icon: IconBook },
 ];
 
 const SAVE_LABEL: Record<SaveStatus, { text: string; color: string }> = {
-  saved:   { text: 'Saved',   color: 'text-green-500' },
-  saving:  { text: 'Saving…', color: 'text-yellow-500' },
-  unsaved: { text: 'Unsaved', color: 'text-gray-400'  },
-  error:   { text: 'Error',   color: 'text-red-500'   },
+  saved:   { text: 'Saved',   color: 'text-gray-400' },
+  saving:  { text: 'Saving…', color: 'text-gray-400' },
+  unsaved: { text: 'Unsaved', color: 'text-gray-400' },
+  error:   { text: 'Error',   color: 'text-red-500'  },
 };
 
 export default function FormEditor({
@@ -69,15 +104,15 @@ export default function FormEditor({
             key={t.id}
             onClick={() => setTab(t.id)}
             className={[
-              'relative flex-1 py-2.5 text-[11px] font-medium transition-colors',
-              tab === t.id ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600',
+              'relative flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium transition-colors',
+              tab === t.id ? 'text-black' : 'text-gray-400 hover:text-gray-600',
             ].join(' ')}
           >
-            <span className="mr-1">{t.emoji}</span>{t.label}
+            <t.Icon />{t.label}
             {tab === t.id && (
               <motion.div
                 layoutId="form-tab-line"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"
               />
             )}
           </button>
@@ -143,7 +178,7 @@ export default function FormEditor({
             <div className="p-3 border-t border-gray-100">
               <button
                 onClick={() => { onNewProject(); setSidebarOpen(false); }}
-                className="w-full py-2 text-sm text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition-colors"
+                className="w-full py-2.5 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800 transition-colors"
               >
                 + New Paper
               </button>

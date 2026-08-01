@@ -25,8 +25,8 @@ interface Props {
   onUploadImage: (file: File) => Promise<UploadResult>;
 }
 
-const BASE_INPUT = 'w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-300 transition-colors bg-white';
-const SM_INPUT   = 'w-full px-2 py-1.5 rounded-md border border-gray-200 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-gray-400 bg-white';
+const BASE_INPUT = 'w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors bg-white';
+const SM_INPUT   = 'w-full px-2 py-1.5 rounded-md border border-gray-200 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-black bg-white';
 
 function updateSections(
   sections: SectionEntry[],
@@ -174,7 +174,7 @@ export default function ContentBuilder({ form, onChange, onUploadImage }: Props)
 const CONTENT_KINDS = [
   { kind: 'paragraph'  as const, icon: '¶', label: 'Paragraph'   },
   { kind: 'subsection' as const, icon: '§', label: 'Sub-section' },
-  { kind: 'figure'     as const, icon: '🖼', label: 'Figure'      },
+  { kind: 'figure'     as const, icon: '▢', label: 'Figure'      },
   { kind: 'table'      as const, icon: '▦', label: 'Table'       },
   { kind: 'equation'   as const, icon: '∑', label: 'Equation'    },
   { kind: 'list'       as const, icon: '•', label: 'List'        },
@@ -381,9 +381,9 @@ function ItemEditor({ item, canRemove, onPatch, onRemove, onUploadImage }: ItemE
 
     case 'equation':
       return (
-        <div className="bg-purple-50 rounded-lg p-3 space-y-1">
+        <div className="bg-gray-50 rounded-lg p-3 space-y-1 border border-gray-100">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-purple-600 uppercase tracking-wider">Equation (LaTeX)</span>
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Equation (LaTeX)</span>
             {removeBtn}
           </div>
           <input
@@ -392,7 +392,7 @@ function ItemEditor({ item, canRemove, onPatch, onRemove, onUploadImage }: ItemE
             value={item.latex}
             onChange={e => onPatch({ latex: e.target.value })}
           />
-          <p className="text-[10px] text-purple-400">Enter LaTeX math — no need to add $$</p>
+          <p className="text-[10px] text-gray-400">Enter LaTeX math — no need to add $$</p>
         </div>
       );
 
@@ -437,7 +437,7 @@ function ItemEditor({ item, canRemove, onPatch, onRemove, onUploadImage }: ItemE
           <button
             type="button"
             onClick={() => onPatch({ items: [...item.items, ''] })}
-            className="text-[11px] text-blue-400 hover:text-blue-600"
+            className="text-[11px] text-black hover:text-gray-600 underline underline-offset-2"
           >
             + Add item
           </button>
@@ -481,9 +481,9 @@ function TableEditor({ item, removeBtn, onPatch }: TableEditorProps) {
     onPatch({ rows: rows.map(row => row.filter((_, i) => i !== c)) });
 
   return (
-    <div className="bg-amber-50 rounded-lg p-3 space-y-2">
+    <div className="bg-gray-50 rounded-lg p-3 space-y-2 border border-gray-100">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">Table</span>
+        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Table</span>
         {removeBtn}
       </div>
 
@@ -500,11 +500,11 @@ function TableEditor({ item, removeBtn, onPatch }: TableEditorProps) {
                         what renders (including manual line breaks). */}
                     <textarea
                       rows={1}
-                      className={`w-24 px-1.5 py-1 rounded border text-[11px] bg-white resize-none overflow-hidden focus:outline-none focus:border-amber-400 ${
+                      className={`w-24 px-1.5 py-1 rounded border text-[11px] bg-white resize-none overflow-hidden focus:outline-none focus:border-black ${
                         centered ? 'text-center' : 'text-left'
                       } ${
                         item.headerRow && r === 0
-                          ? 'border-amber-300 font-semibold text-gray-800'
+                          ? 'border-gray-400 font-semibold text-gray-800'
                           : 'border-gray-200 text-gray-700'
                       }`}
                       placeholder={item.headerRow && r === 0 ? `Header ${c + 1}` : ''}
@@ -554,12 +554,12 @@ function TableEditor({ item, removeBtn, onPatch }: TableEditorProps) {
         <button
           type="button"
           onClick={addRow}
-          className="px-2 py-1 rounded-md text-[11px] text-amber-600 hover:bg-amber-100 border border-amber-200"
+          className="px-2 py-1 rounded-md text-[11px] text-gray-600 hover:bg-gray-100 border border-gray-200"
         >+ Row</button>
         <button
           type="button"
           onClick={addCol}
-          className="px-2 py-1 rounded-md text-[11px] text-amber-600 hover:bg-amber-100 border border-amber-200"
+          className="px-2 py-1 rounded-md text-[11px] text-gray-600 hover:bg-gray-100 border border-gray-200"
         >+ Column</button>
       </div>
 
@@ -576,7 +576,7 @@ function TableEditor({ item, removeBtn, onPatch }: TableEditorProps) {
             type="checkbox"
             checked={item.headerRow}
             onChange={e => onPatch({ headerRow: e.target.checked })}
-            className="w-3 h-3"
+            className="w-3 h-3 accent-black"
           />
           First row is header
         </label>
@@ -585,7 +585,7 @@ function TableEditor({ item, removeBtn, onPatch }: TableEditorProps) {
             type="checkbox"
             checked={centered}
             onChange={e => onPatch({ center: e.target.checked })}
-            className="w-3 h-3"
+            className="w-3 h-3 accent-black"
           />
           Center cells
         </label>
@@ -594,7 +594,7 @@ function TableEditor({ item, removeBtn, onPatch }: TableEditorProps) {
             type="checkbox"
             checked={item.wide}
             onChange={e => onPatch({ wide: e.target.checked })}
-            className="w-3 h-3"
+            className="w-3 h-3 accent-black"
           />
           Full-width (spans both columns)
         </label>
@@ -650,9 +650,9 @@ function FigureEditor({ item, removeBtn, onPatch, onUploadImage }: FigureEditorP
   const previewUrl = item.imageRef ? api.imageUrl(item.imageRef) : '';
 
   return (
-    <div className="bg-blue-50 rounded-lg p-3 space-y-2">
+    <div className="bg-gray-50 rounded-lg p-3 space-y-2 border border-gray-100">
       <div className="flex items-center gap-2">
-        <span className="text-[11px] font-semibold text-blue-600 uppercase tracking-wider">Figure</span>
+        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Figure</span>
         {removeBtn}
       </div>
 
@@ -663,11 +663,11 @@ function FigureEditor({ item, removeBtn, onPatch, onUploadImage }: FigureEditorP
           <img
             src={previewUrl}
             alt={item.filename}
-            className="w-12 h-12 object-cover rounded border border-blue-100 bg-white flex-shrink-0"
+            className="w-12 h-12 object-cover rounded border border-gray-200 bg-white flex-shrink-0"
           />
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] text-green-600 font-mono truncate">✓ {item.filename || item.imageRef}</p>
-            <label className="text-[11px] text-blue-400 hover:text-blue-600 cursor-pointer underline">
+            <p className="text-[11px] text-gray-600 font-mono truncate">✓ {item.filename || item.imageRef}</p>
+            <label className="text-[11px] text-black hover:text-gray-600 cursor-pointer underline underline-offset-2">
               {uploading ? 'Uploading…' : 'Change image'}
               <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
             </label>
@@ -677,11 +677,11 @@ function FigureEditor({ item, removeBtn, onPatch, onUploadImage }: FigureEditorP
         <label
           className={`flex items-center justify-center w-full py-3 border-2 border-dashed rounded-lg text-sm transition-colors cursor-pointer ${
             uploading
-              ? 'border-blue-300 text-blue-500 cursor-wait'
-              : 'border-blue-200 text-blue-400 hover:text-blue-600 hover:border-blue-300'
+              ? 'border-gray-300 text-gray-500 cursor-wait'
+              : 'border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300'
           }`}
         >
-          {uploading ? '⏳ Uploading…' : '📎 Click to upload image'}
+          {uploading ? 'Uploading…' : '+ Click to upload image'}
           <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
         </label>
       )}
@@ -699,7 +699,7 @@ function FigureEditor({ item, removeBtn, onPatch, onUploadImage }: FigureEditorP
           type="checkbox"
           checked={item.wide}
           onChange={e => onPatch({ wide: e.target.checked })}
-          className="w-3 h-3"
+          className="w-3 h-3 accent-black"
         />
         Full-width (spans both columns)
       </label>

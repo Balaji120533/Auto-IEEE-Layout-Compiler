@@ -8,7 +8,7 @@ interface Props {
   onChange: (patch: Partial<PaperForm>) => void;
 }
 
-const si = 'w-full px-2 py-1.5 rounded-md border border-gray-200 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-gray-400 bg-white';
+const si = 'w-full px-2 py-1.5 rounded-md border border-gray-200 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-black bg-white';
 
 function updateRef(refs: ReferenceEntry[], id: string, patch: Partial<ReferenceEntry>): ReferenceEntry[] {
   return refs.map(r => r.id === id ? { ...r, ...patch } : r);
@@ -79,7 +79,7 @@ export default function ReferenceForm({ form, onChange }: Props) {
               onChange={e => update(ref.id, { venue: e.target.value })}
             />
             <input
-              className="w-20 px-2 py-1.5 rounded-md border border-gray-200 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-gray-400 bg-white"
+              className="w-20 px-2 py-1.5 rounded-md border border-gray-200 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-black bg-white"
               placeholder="Year"
               type="number"
               min={1900}

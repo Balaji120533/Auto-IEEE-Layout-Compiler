@@ -42,7 +42,7 @@ export default function CompilePanel({ state, projectError, onCompile, onReset }
               type="checkbox"
               checked={wantDocx}
               onChange={e => setWantDocx(e.target.checked)}
-              className="accent-gray-900"
+              className="accent-black"
             />
             Word (.docx)
           </label>
@@ -51,7 +51,7 @@ export default function CompilePanel({ state, projectError, onCompile, onReset }
               type="checkbox"
               checked={wantPdf}
               onChange={e => setWantPdf(e.target.checked)}
-              className="accent-gray-900"
+              className="accent-black"
             />
             PDF (.pdf)
           </label>
@@ -68,8 +68,8 @@ export default function CompilePanel({ state, projectError, onCompile, onReset }
             isCompiling || ((isIdle || isFailed) && noFormatSelected)
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : isDone
-                ? 'bg-gray-800 text-white hover:bg-gray-700'
-                : 'bg-gray-900 text-white hover:bg-gray-700 active:scale-95',
+                ? 'bg-black text-white hover:bg-gray-800'
+                : 'bg-black text-white hover:bg-gray-800 active:scale-95',
           ].join(' ')}
         >
           {isCompiling && (
@@ -174,9 +174,12 @@ export default function CompilePanel({ state, projectError, onCompile, onReset }
                   key={filename}
                   href={url}
                   download={filename}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-all group"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 hover:border-black hover:bg-gray-50 transition-all group"
                 >
-                  <span className="text-lg">{isDocx ? '📄' : '📑'}</span>
+                  <svg className="w-5 h-5 text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
                   <div>
                     <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900">
                       {filename}
