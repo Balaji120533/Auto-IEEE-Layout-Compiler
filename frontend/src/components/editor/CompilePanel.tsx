@@ -15,7 +15,7 @@ interface Props {
 }
 
 export default function CompilePanel({ state, projectError, onCompile, onReset }: Props) {
-  const { phase, messages, artifacts, warnings, error } = state;
+  const { phase, artifacts, warnings, error } = state;
   const isIdle = phase === 'idle';
   const isCompiling = phase === 'compiling';
   const isDone = phase === 'done';
@@ -91,28 +91,20 @@ export default function CompilePanel({ state, projectError, onCompile, onReset }
         )}
       </div>
 
-      {/* Progress log */}
+      {/* Compile error — the progress log itself is intentionally not shown
+          (it's backend job detail, not something the user needs to watch);
+          only surface a failure message. */}
       <AnimatePresence>
-        {(isCompiling || isDone || isFailed) && messages.length > 0 && (
+        {isFailed && error && (
           <motion.div
-            key="log"
+            key="error"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
+            className="overflow-hidden px-4 pt-3"
           >
-            <div className="bg-gray-950 px-4 py-3 max-h-48 overflow-y-auto scroll-thin font-mono text-[11px] leading-relaxed">
-              {messages.map((msg, i) => (
-                <div key={i} className={msg.includes('error') || msg.includes('Error') ? 'text-red-400' : 'text-green-400'}>
-                  {msg}
-                </div>
-              ))}
-              {isCompiling && (
-                <span className="text-green-300 animate-pulse">▌</span>
-              )}
-              {isFailed && error && (
-                <div className="text-red-400 mt-1">✗ {error}</div>
-              )}
+            <div className="px-3 py-2 rounded-lg bg-red-50 border border-red-100 text-xs text-red-600">
+              {error}
             </div>
           </motion.div>
         )}
