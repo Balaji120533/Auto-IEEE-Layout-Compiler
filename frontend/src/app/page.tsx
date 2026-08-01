@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
@@ -20,13 +21,31 @@ const FEATURES = [
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
+// Duration of the exit animation before the actual route change fires — the
+// hero scales up slightly and blurs out while everything below fades, then
+// navigation happens once that's visually complete. Matches Apple's
+// product-page CTA transitions: a soft, deliberate dissolve instead of an
+// abrupt page swap.
+const TRANSITION_MS = 550;
+
 export default function Home() {
   const router = useRouter();
+  const [isLeaving, setIsLeaving] = useState(false);
+
+  const goToEditor = () => {
+    if (isLeaving) return;
+    setIsLeaving(true);
+    setTimeout(() => router.push('/editor'), TRANSITION_MS);
+  };
 
   return (
     <main className="min-h-screen bg-white text-black">
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center px-6 pt-40 pb-32 text-center overflow-hidden">
+      <motion.section
+        className="relative flex flex-col items-center justify-center px-6 pt-40 pb-32 text-center overflow-hidden"
+        animate={isLeaving ? { opacity: 0, scale: 1.04, filter: 'blur(8px)' } : { opacity: 1, scale: 1, filter: 'blur(0px)' }}
+        transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
+      >
         <motion.p
           className="text-sm font-medium tracking-tight text-gray-400 mb-5"
           initial={{ opacity: 0, y: 8 }}
@@ -58,7 +77,7 @@ export default function Home() {
         </motion.p>
 
         <motion.button
-          onClick={() => router.push('/editor')}
+          onClick={goToEditor}
           className="mt-10 px-8 py-3.5 rounded-full bg-black text-white text-[15px] font-medium tracking-tight transition-colors hover:bg-gray-800"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -77,10 +96,14 @@ export default function Home() {
         >
           No account. No AI in the pipeline. Just your paper, formatted right.
         </motion.p>
-      </section>
+      </motion.section>
 
       {/* Feature strip */}
-      <section className="border-t border-gray-100 px-6 py-24">
+      <motion.section
+        className="border-t border-gray-100 px-6 py-24"
+        animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
+        transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
+      >
         <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-8">
           {FEATURES.map((f, i) => (
             <motion.div
@@ -95,10 +118,14 @@ export default function Home() {
             </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* Closing CTA */}
-      <section className="border-t border-gray-100 px-6 py-24 text-center">
+      <motion.section
+        className="border-t border-gray-100 px-6 py-24 text-center"
+        animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
+        transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
+      >
         <motion.h2
           className="text-3xl sm:text-4xl font-semibold tracking-tight"
           initial={{ opacity: 0, y: 12 }}
@@ -115,17 +142,21 @@ export default function Home() {
           transition={{ duration: 0.6, ease: EASE, delay: 0.1 }}
         >
           <button
-            onClick={() => router.push('/editor')}
+            onClick={goToEditor}
             className="mt-8 px-8 py-3.5 rounded-full bg-black text-white text-[15px] font-medium tracking-tight transition-colors hover:bg-gray-800"
           >
             Open the editor
           </button>
         </motion.div>
-      </section>
+      </motion.section>
 
-      <footer className="px-6 py-10 text-center text-xs text-gray-300">
+      <motion.footer
+        className="px-6 py-10 text-center text-xs text-gray-300"
+        animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
+        transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
+      >
         Auto-IEEE Layout Compiler
-      </footer>
+      </motion.footer>
     </main>
   );
 }
