@@ -4,9 +4,11 @@ import { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useFormProject } from '@/hooks/useFormProject';
 import { useCompileJob } from '@/hooks/useCompileJob';
+import { useToasts } from '@/hooks/useToasts';
 import { formToModel } from '@/lib/formToModel';
 import FormEditor from '@/components/form/FormEditor';
 import PreviewPane from './PreviewPane';
+import ToastStack from './ToastStack';
 import { api } from '@/lib/api';
 import type { CompileFormats } from '@/lib/api';
 import type { DocPreview, PreviewBlock, PreviewSection } from '@/lib/parsePreview';
@@ -188,6 +190,15 @@ function formToPreview(form: PaperForm): DocPreview {
 export default function EditorShell() {
   const project    = useFormProject();
   const compileJob = useCompileJob();
+  const { toasts, pushToast, dismissToast } = useToasts();
+
+  // Surface the gateway's post-upload DPI check immediately as a toast,
+  // instead of only at compile time — see gateway/src/services/image-preflight.ts.
+  const uploadImageWithWarning = async (file: File) => {
+    const result = await project.uploadImage(file);
+    if (result.warning) pushToast(result.warning.level, result.warning.message);
+    return result;
+  };
 
   // Bootstrap: create a project if none in localStorage. On failure the error
   // is surfaced via project.projectError (see the banner below) instead of
@@ -233,7 +244,7 @@ export default function EditorShell() {
           saveStatus={project.saveStatus}
           savedProjects={project.savedProjects}
           onChange={project.handleFormChange}
-          onUploadImage={project.uploadImage}
+          onUploadImage={uploadImageWithWarning}
           onNewProject={() => project.initProject()}
           onLoadProject={project.loadProject}
         />
@@ -250,6 +261,8 @@ export default function EditorShell() {
           onReset={compileJob.reset}
         />
       </div>
+
+      <ToastStack toasts={toasts} onDismiss={dismissToast} />
     </motion.div>
   );
 }

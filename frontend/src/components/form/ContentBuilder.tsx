@@ -14,12 +14,15 @@ type DragListeners = ReturnType<typeof useSortable>['listeners'];
 import { CSS } from '@dnd-kit/utilities';
 import type { PaperForm, SectionEntry, ContentItem } from '@/types/paper-form';
 import { api } from '@/lib/api';
+import type { ImageWarning } from '@/lib/api';
 import { uid } from '@/types/paper-form';
+
+type UploadResult = { ref: string; filename: string; warning?: ImageWarning | null };
 
 interface Props {
   form: PaperForm;
   onChange: (patch: Partial<PaperForm>) => void;
-  onUploadImage: (file: File) => Promise<{ ref: string; filename: string }>;
+  onUploadImage: (file: File) => Promise<UploadResult>;
 }
 
 const BASE_INPUT = 'w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-300 transition-colors bg-white';
@@ -191,7 +194,7 @@ interface SortableSectionProps {
   onPatchContent: (itemId: string, patch: Record<string, unknown>) => void;
   onRemoveContent: (itemId: string) => void;
   onReorderContent: (activeId: string, overId: string) => void;
-  onUploadImage: (file: File) => Promise<{ ref: string; filename: string }>;
+  onUploadImage: (file: File) => Promise<UploadResult>;
 }
 
 function SortableSection({
@@ -280,7 +283,7 @@ interface SortableItemProps {
   canRemove: boolean;
   onPatch: (patch: Record<string, unknown>) => void;
   onRemove: () => void;
-  onUploadImage: (file: File) => Promise<{ ref: string; filename: string }>;
+  onUploadImage: (file: File) => Promise<UploadResult>;
 }
 
 function SortableItem({ item, canRemove, onPatch, onRemove, onUploadImage }: SortableItemProps) {
@@ -315,7 +318,7 @@ interface ItemEditorProps {
   canRemove: boolean;
   onPatch: (patch: Record<string, unknown>) => void;
   onRemove: () => void;
-  onUploadImage: (file: File) => Promise<{ ref: string; filename: string }>;
+  onUploadImage: (file: File) => Promise<UploadResult>;
 }
 
 function ItemEditor({ item, canRemove, onPatch, onRemove, onUploadImage }: ItemEditorProps) {
@@ -609,7 +612,7 @@ interface FigureEditorProps {
   item: Extract<ContentItem, { kind: 'figure' }>;
   removeBtn: React.ReactNode;
   onPatch: (patch: Record<string, unknown>) => void;
-  onUploadImage: (file: File) => Promise<{ ref: string; filename: string }>;
+  onUploadImage: (file: File) => Promise<UploadResult>;
 }
 
 function FigureEditor({ item, removeBtn, onPatch, onUploadImage }: FigureEditorProps) {

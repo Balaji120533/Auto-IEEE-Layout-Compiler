@@ -5,6 +5,7 @@ import { projectStore } from '../services/project-store';
 import { storage } from '../services/object-storage';
 import { parseMarkdown } from '../services/markdown-parser';
 import { engineClient } from '../services/engine-client';
+import { checkImageDpi } from '../services/image-preflight';
 
 const MIME: Record<string, string> = {
   '.png': 'image/png',
@@ -57,7 +58,9 @@ export async function projectRoutes(server: FastifyInstance) {
     const ref = await storage.save(project.id, filename, data.file);
     projectStore.addImageRef(project.id, ref);
 
-    return reply.status(201).send({ ref, filename });
+    const warning = await checkImageDpi(storage.absolutePath(ref), filename);
+
+    return reply.status(201).send({ ref, filename, warning });
   });
 
   // ── GET /projects/:id/images/:filename ─────────────────────────────────────

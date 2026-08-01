@@ -19,6 +19,12 @@ export interface CompileFormats {
   pdf: boolean;
 }
 
+export interface ImageWarning {
+  level: 'warn' | 'error';
+  filename: string;
+  message: string;
+}
+
 export interface JobStatus {
   id: string;
   status: 'pending' | 'running' | 'done' | 'failed';
@@ -55,7 +61,7 @@ export const api = {
     return r.json();
   },
 
-  async uploadImage(id: string, file: File): Promise<{ ref: string; filename: string }> {
+  async uploadImage(id: string, file: File): Promise<{ ref: string; filename: string; warning: ImageWarning | null }> {
     const form = new FormData();
     form.append('file', file);
     const r = await fetch(`${GATEWAY}/projects/${id}/images`, { method: 'POST', body: form });
