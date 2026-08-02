@@ -113,6 +113,34 @@ export function useFormProject() {
     setSaveStatus('saved');
   }, []);
 
+  /** Remove a saved paper: its stored form, its list entry, and — if it's the
+   *  one currently open — the active project pointer too, so the editor falls
+   *  back to a blank form instead of holding a deleted id. The gateway keeps
+   *  projects in memory only and `ensureProject` recreates on demand, so there
+   *  is nothing server-side to clean up. */
+  const deleteProject = useCallback((id: string) => {
+    localStorage.removeItem(`ieee-form-${id}`);
+
+    setSavedProjects(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      localStorage.setItem(LS_LIST, JSON.stringify(updated));
+      return updated;
+    });
+
+    if (projectId === id) {
+      // Cancel a pending auto-save, or it would rewrite the entry we just removed.
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      const blank = emptyForm();
+      setForm(blank);
+      latestForm.current = blank;
+      setProjectId(null);
+      setImageRefs([]);
+      setSaveStatus('saved');
+      localStorage.removeItem(LS_PROJECT);
+      localStorage.removeItem(LS_FORM);
+    }
+  }, [projectId]);
+
   const handleFormChange = useCallback((patch: Partial<PaperForm>) => {
     // Pure state update — no side effects inside the updater
     setForm(prev => {
@@ -196,6 +224,7 @@ export function useFormProject() {
     savedProjects,
     initProject,
     loadProject,
+    deleteProject,
     handleFormChange,
     uploadImage,
     ensureProject,

@@ -247,6 +247,7 @@ export default function EditorShell() {
           onUploadImage={uploadImageWithWarning}
           onNewProject={() => project.initProject()}
           onLoadProject={project.loadProject}
+          onDeleteProject={project.deleteProject}
         />
       </div>
 

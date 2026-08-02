@@ -18,6 +18,7 @@ interface Props {
   onUploadImage: (file: File) => Promise<{ ref: string; filename: string }>;
   onNewProject: () => void;
   onLoadProject: (id: string) => void;
+  onDeleteProject: (id: string) => void;
 }
 
 type Tab = 'info' | 'authors' | 'content' | 'references';
@@ -73,11 +74,15 @@ const SAVE_LABEL: Record<SaveStatus, { text: string; color: string }> = {
 
 export default function FormEditor({
   form, saveStatus, savedProjects,
-  onChange, onUploadImage, onNewProject, onLoadProject,
+  onChange, onUploadImage, onNewProject, onLoadProject, onDeleteProject,
 }: Props) {
   const [tab, setTab] = useState<Tab>('info');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  // Id of the paper awaiting delete confirmation — deleting is irreversible
+  // (the form lives only in localStorage), so the ✕ arms a confirm step
+  // rather than removing on the first click.
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const { text: saveText, color: saveColor } = SAVE_LABEL[saveStatus];
   const { data: session } = useSession();
   const user = session?.user;
@@ -168,7 +173,7 @@ export default function FormEditor({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               className="absolute inset-0 z-0 bg-black/20"
-              onClick={() => { setSidebarOpen(false); setProfileMenuOpen(false); }}
+              onClick={() => { setSidebarOpen(false); setProfileMenuOpen(false); setConfirmDeleteId(null); }}
             />
             <motion.div
               initial={{ x: -280, opacity: 0 }}
@@ -179,20 +184,52 @@ export default function FormEditor({
             >
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <span className="text-sm font-semibold text-gray-700">Saved Papers</span>
-              <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-gray-700">✕</button>
+              <button onClick={() => { setSidebarOpen(false); setConfirmDeleteId(null); }} className="text-gray-400 hover:text-gray-700">✕</button>
             </div>
             <div className="flex-1 overflow-y-auto py-2 scroll-thin">
               {savedProjects.length === 0
                 ? <p className="text-xs text-gray-400 px-4 py-3 italic">No saved papers yet</p>
                 : savedProjects.map(p => (
-                  <button
+                  <div
                     key={p.id}
-                    onClick={() => { onLoadProject(p.id); setSidebarOpen(false); }}
-                    className="w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors border-b border-gray-50"
+                    className="group relative flex items-center border-b border-gray-50 hover:bg-gray-50 transition-colors"
                   >
-                    <p className="text-sm font-medium text-gray-700 truncate">{p.title}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">{new Date(p.savedAt).toLocaleDateString()}</p>
-                  </button>
+                    <button
+                      onClick={() => { onLoadProject(p.id); setSidebarOpen(false); }}
+                      className="min-w-0 flex-1 text-left pl-4 pr-2 py-2.5"
+                    >
+                      <p className="text-sm font-medium text-gray-700 truncate">{p.title}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{new Date(p.savedAt).toLocaleDateString()}</p>
+                    </button>
+
+                    {confirmDeleteId === p.id ? (
+                      <div className="flex items-center gap-1 pr-3">
+                        <button
+                          onClick={() => { onDeleteProject(p.id); setConfirmDeleteId(null); }}
+                          className="px-2 py-1 text-[11px] font-medium text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="px-2 py-1 text-[11px] text-gray-500 rounded-md hover:bg-gray-200 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeleteId(p.id)}
+                        title={`Delete "${p.title}"`}
+                        aria-label={`Delete "${p.title}"`}
+                        className="mr-2 p-1.5 rounded-md text-gray-300 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-red-500 hover:bg-red-50 transition-all"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 ))
               }
             </div>
