@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import type { PaperForm } from '@/types/paper-form';
 import type { SaveStatus, SavedProject } from '@/hooks/useProject';
@@ -252,6 +253,17 @@ export default function FormEditor({
                         transition={{ duration: 0.15 }}
                         className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
                       >
+                        <Link
+                          href="/guide"
+                          onClick={() => setProfileMenuOpen(false)}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-100"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                          </svg>
+                          User guide
+                        </Link>
                         <button
                           onClick={() => { setProfileMenuOpen(false); signOut({ callbackUrl: '/' }); }}
                           className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"

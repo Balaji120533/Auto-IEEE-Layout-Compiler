@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import {
   DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors,
 } from '@dnd-kit/core';
@@ -16,6 +16,7 @@ import type { PaperForm, SectionEntry, ContentItem } from '@/types/paper-form';
 import { api } from '@/lib/api';
 import type { ImageWarning } from '@/lib/api';
 import { uid } from '@/types/paper-form';
+import { findCitationHints } from '@/lib/citationHints';
 
 type UploadResult = { ref: string; filename: string; warning?: ImageWarning | null };
 
@@ -150,6 +151,7 @@ export default function ContentBuilder({ form, onChange, onUploadImage }: Props)
               onRemoveContent={itemId => removeContent(sec.id, itemId)}
               onReorderContent={(activeId, overId) => reorderContent(sec.id, activeId, overId)}
               onUploadImage={onUploadImage}
+              refCount={form.references.length}
             />
           ))}
         </SortableContext>
@@ -195,11 +197,12 @@ interface SortableSectionProps {
   onRemoveContent: (itemId: string) => void;
   onReorderContent: (activeId: string, overId: string) => void;
   onUploadImage: (file: File) => Promise<UploadResult>;
+  refCount: number;
 }
 
 function SortableSection({
   sec, idx, canRemove, onHeadingChange, onRemove,
-  onAddContent, onPatchContent, onRemoveContent, onReorderContent, onUploadImage,
+  onAddContent, onPatchContent, onRemoveContent, onReorderContent, onUploadImage, refCount,
 }: SortableSectionProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sec.id });
 
@@ -253,6 +256,7 @@ function SortableSection({
                 onPatch={patch => onPatchContent(item.id, patch)}
                 onRemove={() => onRemoveContent(item.id)}
                 onUploadImage={onUploadImage}
+                refCount={refCount}
               />
             ))}
           </SortableContext>
@@ -284,9 +288,10 @@ interface SortableItemProps {
   onPatch: (patch: Record<string, unknown>) => void;
   onRemove: () => void;
   onUploadImage: (file: File) => Promise<UploadResult>;
+  refCount: number;
 }
 
-function SortableItem({ item, canRemove, onPatch, onRemove, onUploadImage }: SortableItemProps) {
+function SortableItem({ item, canRemove, onPatch, onRemove, onUploadImage, refCount }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
 
   return (
@@ -305,8 +310,55 @@ function SortableItem({ item, canRemove, onPatch, onRemove, onUploadImage }: Sor
           onPatch={onPatch}
           onRemove={onRemove}
           onUploadImage={onUploadImage}
+          refCount={refCount}
         />
       </div>
+    </div>
+  );
+}
+
+// ── Citation typo hints ──────────────────────────────────────────────────────
+
+/**
+ * Surfaces malformed citations directly under the paragraph that contains
+ * them. The compiler passes unrecognised brackets through verbatim, so without
+ * this the mistake is invisible until the user opens the finished document.
+ */
+function CitationHints({
+  text, refCount, onFix,
+}: {
+  text: string;
+  refCount: number;
+  onFix: (from: string, to: string) => void;
+}) {
+  const hints = useMemo(() => findCitationHints(text, refCount), [text, refCount]);
+  if (hints.length === 0) return null;
+
+  return (
+    <div className="mt-1.5 space-y-1">
+      {hints.map(h => (
+        <div key={h.found} className="flex items-center gap-1.5 text-[11px] text-gray-500">
+          <svg
+            width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2" className="flex-shrink-0 text-amber-500"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <code className="px-1 py-0.5 bg-gray-100 rounded text-gray-700">{h.found}</code>
+          <span>{h.reason}.</span>
+          {h.suggestion && (
+            <button
+              type="button"
+              onClick={() => onFix(h.found, h.suggestion!)}
+              className="text-gray-700 underline underline-offset-2 hover:text-black"
+            >
+              Change to {h.suggestion}
+            </button>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -319,9 +371,10 @@ interface ItemEditorProps {
   onPatch: (patch: Record<string, unknown>) => void;
   onRemove: () => void;
   onUploadImage: (file: File) => Promise<UploadResult>;
+  refCount: number;
 }
 
-function ItemEditor({ item, canRemove, onPatch, onRemove, onUploadImage }: ItemEditorProps) {
+function ItemEditor({ item, canRemove, onPatch, onRemove, onUploadImage, refCount }: ItemEditorProps) {
   const removeBtn = canRemove ? (
     <button
       type="button"
@@ -334,13 +387,20 @@ function ItemEditor({ item, canRemove, onPatch, onRemove, onUploadImage }: ItemE
     case 'paragraph':
       return (
         <div className="flex gap-1">
-          <textarea
-            className={`${BASE_INPUT} resize-none`}
-            rows={3}
-            placeholder="Type or paste your paragraph text here…"
-            value={item.text}
-            onChange={e => onPatch({ text: e.target.value })}
-          />
+          <div className="flex-1 min-w-0">
+            <textarea
+              className={`${BASE_INPUT} resize-none`}
+              rows={3}
+              placeholder="Type or paste your paragraph text here…"
+              value={item.text}
+              onChange={e => onPatch({ text: e.target.value })}
+            />
+            <CitationHints
+              text={item.text}
+              refCount={refCount}
+              onFix={(from, to) => onPatch({ text: item.text.split(from).join(to) })}
+            />
+          </div>
           {removeBtn}
         </div>
       );

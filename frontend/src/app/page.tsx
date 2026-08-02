@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
@@ -32,11 +33,13 @@ export default function Home() {
   const router = useRouter();
   const [isLeaving, setIsLeaving] = useState(false);
 
-  const goToEditor = () => {
+  const goTo = (href: string) => {
     if (isLeaving) return;
     setIsLeaving(true);
-    setTimeout(() => router.push('/editor'), TRANSITION_MS);
+    setTimeout(() => router.push(href), TRANSITION_MS);
   };
+
+  const goToEditor = () => goTo('/editor');
 
   return (
     <main className="min-h-screen bg-white text-black">
@@ -88,14 +91,23 @@ export default function Home() {
           Start writing →
         </motion.button>
 
-        <motion.p
-          className="mt-4 text-xs text-gray-400"
+        <motion.div
+          className="mt-4 flex flex-col items-center gap-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          No AI in the pipeline. Just your paper, formatted right.
-        </motion.p>
+          <p className="text-xs text-gray-400">
+            No AI in the pipeline. Just your paper, formatted right.
+          </p>
+          <Link
+            href="/guide"
+            onClick={e => { e.preventDefault(); goTo('/guide'); }}
+            className="text-[13px] text-gray-500 underline underline-offset-4 decoration-gray-300 hover:text-black hover:decoration-black transition-colors"
+          >
+            Read the user guide
+          </Link>
+        </motion.div>
       </motion.section>
 
       {/* Feature strip */}

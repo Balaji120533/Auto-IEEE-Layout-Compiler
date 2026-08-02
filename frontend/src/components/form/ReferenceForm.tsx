@@ -34,14 +34,20 @@ export default function ReferenceForm({ form, onChange }: Props) {
         </p>
       )}
 
-      {refs.length > 0 && (
-        <p className="text-[11px] text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 leading-snug">
-          To cite a reference inside a paragraph, type{' '}
-          <code className="px-1 py-0.5 bg-white border border-gray-200 rounded text-gray-700">[CITE 1]</code>{' '}
-          where <b>1</b> is the reference number below. It renders as{' '}
-          <b>[1]</b> and renumbers automatically if you reorder references.
-        </p>
-      )}
+      <p className="text-[11px] text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 leading-snug">
+        To cite a reference inside a paragraph, type{' '}
+        <code className="px-1 py-0.5 bg-white border border-gray-200 rounded text-gray-700">[CITE 1]</code>{' '}
+        where <b>1</b> is the reference number below. It renders as{' '}
+        <b>[1]</b> and renumbers automatically if you reorder references.{' '}
+        <a
+          href="/guide"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-gray-700 underline underline-offset-2 hover:text-black"
+        >
+          User guide
+        </a>
+      </p>
 
       {refs.map((ref, idx) => (
         <div key={ref.id} className="border border-gray-200 rounded-xl p-3 space-y-2">
