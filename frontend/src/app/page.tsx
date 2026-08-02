@@ -94,7 +94,7 @@ export default function Home() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          No account. No AI in the pipeline. Just your paper, formatted right.
+          No AI in the pipeline. Just your paper, formatted right.
         </motion.p>
       </motion.section>
 

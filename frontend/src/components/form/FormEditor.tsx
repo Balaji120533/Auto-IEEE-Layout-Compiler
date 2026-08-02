@@ -154,13 +154,29 @@ export default function FormEditor({
       </div>
 
       {/* Saved projects sidebar */}
-      {sidebarOpen && (
-        <motion.div
-          initial={{ x: -280, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          className="absolute inset-0 z-30 flex"
-        >
-          <div className="w-72 bg-white border-r border-gray-200 flex flex-col shadow-2xl">
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div className="absolute inset-0 z-30 flex">
+            {/* Full-bleed backdrop: it must sit UNDER the panel and span the
+                whole pane, not just the area to the panel's right. The panel's
+                rounded corner is transparent, so whatever is behind it shows
+                through — if the backdrop stopped at the panel's edge, that
+                corner would reveal the bare white editor as a stray box. */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 z-0 bg-black/20"
+              onClick={() => { setSidebarOpen(false); setProfileMenuOpen(false); }}
+            />
+            <motion.div
+              initial={{ x: -280, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -280, opacity: 0 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="relative z-10 w-72 bg-white rounded-r-2xl overflow-hidden border-r border-gray-200 flex flex-col shadow-xl"
+            >
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <span className="text-sm font-semibold text-gray-700">Saved Papers</span>
               <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-gray-700">✕</button>
@@ -180,7 +196,7 @@ export default function FormEditor({
                 ))
               }
             </div>
-            <div className="p-3 border-t border-gray-100 space-y-2">
+            <div className="flex-shrink-0 p-3 border-t border-gray-100 space-y-2">
               <button
                 onClick={() => { onNewProject(); setSidebarOpen(false); }}
                 className="w-full py-2.5 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800 transition-colors"
@@ -232,10 +248,10 @@ export default function FormEditor({
                 </div>
               )}
             </div>
-          </div>
-          <div className="flex-1 bg-black/20" onClick={() => { setSidebarOpen(false); setProfileMenuOpen(false); }} />
-        </motion.div>
-      )}
+          </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
