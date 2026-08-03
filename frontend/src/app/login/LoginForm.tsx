@@ -12,6 +12,9 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/editor';
+  // Set by SessionTimeout when it signs an idle user out, so the login page can
+  // explain the redirect instead of looking like an unexplained bounce.
+  const expired = searchParams.get('expired') === '1';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,7 +47,11 @@ export default function LoginForm() {
         </Link>
 
         <h1 className="mt-6 text-3xl font-semibold tracking-tight">Welcome back</h1>
-        <p className="mt-2 text-sm text-gray-500">Sign in to continue to the editor.</p>
+        <p className="mt-2 text-sm text-gray-500">
+          {expired
+            ? 'Your session timed out after 30 minutes of inactivity. Sign in to pick up where you left off — your papers are saved in this browser.'
+            : 'Sign in to continue to the editor.'}
+        </p>
 
         <button
           type="button"

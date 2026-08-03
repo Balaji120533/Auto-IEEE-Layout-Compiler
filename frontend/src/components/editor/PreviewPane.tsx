@@ -19,8 +19,15 @@ interface Props {
 
 type Tab = 'preview' | 'compile';
 
+// Discrete steps rather than a free slider — the useful range is small and
+// fixed stops keep 100% (true A4 size) always reachable in one click.
+const ZOOM_STEPS = [0.6, 0.75, 0.9, 1, 1.25, 1.5] as const;
+const DEFAULT_ZOOM_INDEX = 3; // 1.0
+
 export default function PreviewPane({ preview, compileState, projectId, projectError, onCompile, onReset }: Props) {
   const [tab, setTab] = useState<Tab>('preview');
+  const [zoomIndex, setZoomIndex] = useState(DEFAULT_ZOOM_INDEX);
+  const zoom = ZOOM_STEPS[zoomIndex];
 
   // Auto-switch to compile tab when compiling starts
   const isDone = compileState.phase === 'done';
@@ -54,6 +61,42 @@ export default function PreviewPane({ preview, compileState, projectId, projectE
             )}
           </button>
         ))}
+
+        {tab === 'preview' && (
+          <div className="ml-auto flex items-center gap-0.5 pr-3">
+            <button
+              onClick={() => setZoomIndex(i => Math.max(0, i - 1))}
+              disabled={zoomIndex === 0}
+              title="Zoom out"
+              aria-label="Zoom out"
+              className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400 transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => setZoomIndex(DEFAULT_ZOOM_INDEX)}
+              title="Reset to actual A4 size"
+              className="min-w-[3rem] px-1 py-1 text-[11px] tabular-nums text-gray-500 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+            >
+              {Math.round(zoom * 100)}%
+            </button>
+
+            <button
+              onClick={() => setZoomIndex(i => Math.min(ZOOM_STEPS.length - 1, i + 1))}
+              disabled={zoomIndex === ZOOM_STEPS.length - 1}
+              title="Zoom in"
+              aria-label="Zoom in"
+              className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400 transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Tab content */}
@@ -65,7 +108,7 @@ export default function PreviewPane({ preview, compileState, projectId, projectE
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            <PaperPreview preview={preview} />
+            <PaperPreview preview={preview} zoom={zoom} />
           </motion.div>
         )}
 

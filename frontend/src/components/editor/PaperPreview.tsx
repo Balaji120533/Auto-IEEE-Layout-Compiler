@@ -7,12 +7,39 @@ import MathBlock from './MathBlock';
 
 interface Props {
   preview: DocPreview;
+  /** Display scale for the page stack. Layout/pagination always run at 1 —
+   *  this only scales the rendered result, so page breaks never depend on it. */
+  zoom?: number;
 }
 
-// Approximate one printed page's two-column content budget in preview pixels.
-// A page holds two columns of this height, so the total "content budget" per
-// page is 2x this — matches the column-fill box used to render each page.
-const PAGE_COLUMN_HEIGHT = 760;
+// ── Page geometry ────────────────────────────────────────────────────────────
+// Derived from the engine's real A4 setup (engine/renderer/styles.py) so the
+// preview is proportionally honest rather than eyeballed:
+//
+//   page      595.30 × 841.90 pt   (A4, 210 × 297 mm)
+//   margins   left/right 45.35pt, top 54pt, bottom 72pt
+//
+// Everything below scales those points by PT_TO_PX. Keeping one scale factor
+// means the page card, its margins and its columns can never drift out of
+// proportion with each other the way hand-picked pixel values did.
+const PAGE_W_PT = 595.30;
+const PAGE_H_PT = 841.90;
+const MARGIN_X_PT = 45.35;
+const MARGIN_TOP_PT = 54;
+const MARGIN_BOTTOM_PT = 72;
+
+// Chosen so the page card is ~640px wide, matching the previous layout width.
+const PT_TO_PX = 640 / PAGE_W_PT;
+
+// True A4 aspect: 640 × 905 rather than the old 640 × ~860.
+const PAGE_HEIGHT = Math.round(PAGE_H_PT * PT_TO_PX);
+
+// Usable vertical space for the two-column body, once the page's own top and
+// bottom margins are removed. The header (title/authors) and footer are
+// subtracted from this at render time.
+const PAGE_COLUMN_HEIGHT = Math.round(
+  (PAGE_H_PT - MARGIN_TOP_PT - MARGIN_BOTTOM_PT) * PT_TO_PX
+);
 
 // Vertical padding on the two-column body row (py-3 = 12px top + 12px bottom).
 // With box-sizing:border-box the row's inner content area is shorter than
@@ -27,8 +54,11 @@ const COLUMN_FILL_BUDGET = PAGE_COLUMN_HEIGHT - COLUMN_BODY_PADDING_Y * 2;
 // pass below computes column width from this same constant, so measured
 // heights always match what actually renders. A mismatch here is what let
 // text/images overflow past the visible page edge.
-const PAGE_WIDTH = 640;
-const PAGE_PADDING_X = 24; // px-6 on the two-column body
+const PAGE_WIDTH = Math.round(PAGE_W_PT * PT_TO_PX);
+// Real A4 side margins (45.35pt ≈ 48px), not the old 24px. This is the change
+// that makes the text block occupy the same 84.8% of page width as the .docx,
+// instead of an over-wide 92.5%.
+const PAGE_PADDING_X = Math.round(MARGIN_X_PT * PT_TO_PX);
 const COLUMN_GAP = 12;     // 0.75rem
 // Small safety margin subtracted from the true column width so justified text
 // wraps a little before the hard edge — sub-pixel rounding in the browser's
@@ -47,10 +77,42 @@ const COLUMN_WIDTH = (PAGE_WIDTH - PAGE_PADDING_X * 2 - COLUMN_GAP) / 2 - COLUMN
 const COLUMN_INNER_BORDER = 1;  // borderRight on the left column
 const MEASURE_WIDTH = COLUMN_WIDTH - COLUMN_GAP / 2 - COLUMN_INNER_BORDER;
 
+// ── Type scale ───────────────────────────────────────────────────────────────
+// Every size below is the template's real point size converted through the same
+// PT_TO_PX used for the page geometry, so text occupies the same proportion of
+// the column as it does in the .docx. These were previously hand-picked pixel
+// values ~25-45% too small, which is why preview line breaks and page breaks
+// did not match the compiled document.
+//
+// Point sizes read from engine/templates/ieee_template.docx via python-docx:
+//   paper title 24 · subtitle 14 · Author 11 · Abstract 9 · Affiliation 9
+//   body (Normal, Word's default) 10 · figure caption 8 · table copy 8
+//   references 8
+const pt = (points: number) => `${(points * PT_TO_PX).toFixed(2)}px`;
+
+const FS = {
+  title:      pt(24),
+  author:     pt(11),
+  affiliation: pt(9),
+  abstract:   pt(9),
+  body:       pt(10),
+  caption:    pt(8),
+  table:      pt(8),
+  references: pt(8),
+  // Section headings inherit the 10pt body size in the template; IEEE styles
+  // them by case and weight rather than by size.
+  heading:    pt(10),
+} as const;
+
+// "Body Text" in the template is 11.40pt line spacing on 10pt type, with 6pt
+// after each paragraph. Tailwind's leading-relaxed (1.625) made paragraphs
+// ~42% taller than the document, which shifted every page break.
+const BODY_LINE_HEIGHT = 11.4 / 10;
+
 const HEADING_CLS: Record<1 | 2 | 3, string> = {
-  1: 'text-[8.5px] font-bold uppercase tracking-wider text-center mt-4 mb-1',
-  2: 'text-[8px] font-semibold italic mt-3 mb-0.5',
-  3: 'text-[7.5px] italic mt-2 mb-0.5',
+  1: 'font-bold uppercase tracking-wider text-center mt-4 mb-1',
+  2: 'font-semibold italic mt-3 mb-0.5',
+  3: 'italic mt-2 mb-0.5',
 };
 
 function chunk<T>(items: T[], size: number): T[][] {
@@ -69,11 +131,14 @@ function headingText(b: Extract<PreviewBlock, { kind: 'heading' }>): string {
 function Block({ block, refCount }: { block: PreviewBlock; refCount: number }) {
   switch (block.kind) {
     case 'heading':
-      return <div className={`${HEADING_CLS[block.level]} break-inside-avoid`}>{headingText(block)}</div>;
+      return <div className={`${HEADING_CLS[block.level]} break-inside-avoid`} style={{ fontSize: FS.heading }}>{headingText(block)}</div>;
 
     case 'paragraph':
       return (
-        <p className="text-[7.5px] leading-relaxed text-justify text-gray-700 mb-1">
+        <p
+          className="text-justify text-gray-700"
+          style={{ fontSize: FS.body, lineHeight: BODY_LINE_HEIGHT, marginBottom: pt(6) }}
+        >
           {resolveCitations(block.text, refCount)}
         </p>
       );
@@ -82,7 +147,7 @@ function Block({ block, refCount }: { block: PreviewBlock; refCount: number }) {
       return (
         <div className="break-inside-avoid my-1.5 flex items-center justify-center gap-2">
           <MathBlock latex={block.latex} className="overflow-x-auto" />
-          <span className="text-[7px] text-gray-400 flex-shrink-0">{block.label}</span>
+          <span className="text-gray-400 flex-shrink-0" style={{ fontSize: FS.caption }}>{block.label}</span>
         </div>
       );
 
@@ -102,11 +167,11 @@ function Block({ block, refCount }: { block: PreviewBlock; refCount: number }) {
               className="border border-gray-200 bg-gray-50 flex items-center justify-center"
               style={{ height: 48 }}
             >
-              <span className="text-[7px] text-gray-400">{block.label}</span>
+              <span className="text-gray-400" style={{ fontSize: FS.caption }}>{block.label}</span>
             </div>
           )}
           {block.caption && (
-            <figcaption className="text-[6.5px] text-gray-600 text-center mt-0.5 leading-tight">
+            <figcaption className="text-gray-600 text-center mt-0.5 leading-tight" style={{ fontSize: FS.caption }}>
               <span className="font-semibold">{block.label}.</span> {block.caption}
             </figcaption>
           )}
@@ -117,13 +182,13 @@ function Block({ block, refCount }: { block: PreviewBlock; refCount: number }) {
       return (
         <figure className="break-inside-avoid my-2">
           {/* Caption above the table — IEEE convention (mirrors the .docx). */}
-          <figcaption className="text-[6.5px] text-gray-600 text-center mb-0.5 leading-tight">
+          <figcaption className="text-gray-600 text-center mb-0.5 leading-tight" style={{ fontSize: FS.caption }}>
             <span className="font-semibold uppercase">{block.label}.</span>{' '}
             {block.caption}
           </figcaption>
           <table
             className="w-full border-collapse"
-            style={{ fontSize: '6.5px', tableLayout: 'fixed' }}
+            style={{ fontSize: FS.table, tableLayout: 'fixed' }}
           >
             <tbody>
               {block.rows.map((row, r) => {
@@ -161,7 +226,7 @@ function Block({ block, refCount }: { block: PreviewBlock; refCount: number }) {
 
     case 'list':
       return (
-        <ul className="text-[7.5px] text-gray-700 mb-1 pl-3 space-y-0.5">
+        <ul className="text-gray-700 mb-1 pl-3 space-y-0.5" style={{ fontSize: FS.body }}>
           {block.items.map((it, i) => (
             <li key={i} className="leading-tight">
               <span className="text-gray-400 mr-1">{block.style === 'bullet' ? '•' : `${i + 1}.`}</span>
@@ -189,13 +254,13 @@ function FlowItemView({ item, refCount }: { item: FlowItem; refCount: number }) 
       return (
         <div className="mb-1">
           {item.abstract && (
-            <div className="text-[7.5px] leading-relaxed text-justify">
+            <div className="text-justify" style={{ fontSize: FS.abstract, lineHeight: BODY_LINE_HEIGHT }}>
               <em className="font-bold italic">Abstract—</em>
               {item.abstract}
             </div>
           )}
           {item.keywords.length > 0 && (
-            <div className="mt-1 text-[7px]">
+            <div className="mt-1" style={{ fontSize: FS.abstract }}>
               <span className="font-bold italic">Index Terms—</span>
               {item.keywords.join(', ')}
             </div>
@@ -207,12 +272,12 @@ function FlowItemView({ item, refCount }: { item: FlowItem; refCount: number }) 
     case 'references':
       return (
         <div className="break-inside-avoid mt-3">
-          <p className="text-[8px] font-bold uppercase text-center mb-1">References</p>
+          <p className="font-bold uppercase text-center mb-1" style={{ fontSize: FS.references }}>References</p>
           {item.refs.map(ref => (
             <p
               key={ref.key}
-              className="text-[6.5px] text-gray-600 mb-0.5 leading-tight text-justify"
-              style={{ paddingLeft: 10, textIndent: -10 }}
+              className="text-gray-600 mb-0.5 leading-tight text-justify"
+              style={{ fontSize: FS.references, paddingLeft: 10, textIndent: -10 }}
             >
               <span className="font-semibold">[{ref.key}]</span> {ref.text}
             </p>
@@ -227,7 +292,7 @@ function FlowItemView({ item, refCount }: { item: FlowItem; refCount: number }) 
 // column that bleeds past the visible page edge.
 type PageColumns = { left: FlowItem[]; right: FlowItem[] };
 
-export default function PaperPreview({ preview }: Props) {
+export default function PaperPreview({ preview, zoom = 1 }: Props) {
   const measureRef = useRef<HTMLDivElement>(null);
   const [pages, setPages] = useState<PageColumns[] | null>(null);
 
@@ -325,8 +390,11 @@ export default function PaperPreview({ preview }: Props) {
         img.removeEventListener('error', onSettle);
       });
     };
+    // Re-measure on zoom too: the inverse-zoom on the measurement container
+    // leaves sub-pixel rounding differences between scales, which can nudge a
+    // borderline block across a column boundary.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preview]);
+  }, [preview, zoom]);
 
   if (!preview.hasContent) {
     return (
@@ -347,7 +415,21 @@ export default function PaperPreview({ preview }: Props) {
   const displayPages = pages ?? [{ left: flowItems, right: [] }];
 
   return (
-    <div className="select-none" style={{ fontFamily: '"Times New Roman", Times, serif', fontSize: 9 }}>
+    <div
+      className="select-none"
+      style={{
+        fontFamily: '"Times New Roman", Times, serif',
+        fontSize: FS.body,
+        // CSS `zoom` rather than `transform: scale()`: zoom also scales the
+        // element's layout box, so the scroll container reserves the right
+        // amount of room automatically. A transform would leave the original
+        // footprint behind, clipping pages when zoomed in.
+        //
+        // The measurement pass below cancels this back out, so page breaks are
+        // computed at true size and stay identical at every zoom level.
+        zoom: zoom === 1 ? undefined : zoom,
+      }}
+    >
       {/* Hidden measurement pass: render every flow item once, off-screen, at
           the same width it will render at on a real page, to get true heights. */}
       <div
@@ -360,6 +442,10 @@ export default function PaperPreview({ preview }: Props) {
           top: -99999,
           left: -99999,
           width: MEASURE_WIDTH,
+          // Cancel the wrapper's zoom. getBoundingClientRect() returns scaled
+          // values, so without this every measured height would be multiplied
+          // by the zoom factor and pagination would change as the user zoomed.
+          zoom: zoom === 1 ? undefined : 1 / zoom,
           overflowWrap: 'break-word',
           wordBreak: 'break-word',
         }}
@@ -374,9 +460,13 @@ export default function PaperPreview({ preview }: Props) {
       {displayPages.map((cols, pageIndex) => (
         <div
           key={pageIndex}
-          className="bg-white shadow-lg mx-4 my-4 overflow-hidden text-gray-900"
+          className="bg-white shadow-lg mx-4 my-4 overflow-hidden text-gray-900 flex flex-col"
           style={{
             width: PAGE_WIDTH,
+            // A page is always a full A4 sheet, even when the content is short —
+            // otherwise a half-empty first page renders as a stub and gives a
+            // false impression of how much space is left.
+            minHeight: PAGE_HEIGHT,
             flexShrink: 0,
             overflowWrap: 'break-word',
             wordBreak: 'break-word',
@@ -384,8 +474,15 @@ export default function PaperPreview({ preview }: Props) {
         >
           {/* Header: single-column section (title/authors/affiliations only), page 1 only */}
           {pageIndex === 0 && (
-            <div className="px-8 pt-8 pb-3 border-b border-gray-200">
-              <h1 className="text-[13px] font-bold text-center leading-tight mb-1 tracking-wide">
+            <div
+              className="pb-3 border-b border-gray-200"
+              style={{
+                paddingLeft: PAGE_PADDING_X,
+                paddingRight: PAGE_PADDING_X,
+                paddingTop: Math.round(MARGIN_TOP_PT * PT_TO_PX),
+              }}
+            >
+              <h1 className="font-bold text-center leading-tight mb-1 tracking-wide" style={{ fontSize: FS.title }}>
                 {preview.title || 'Untitled Paper'}
               </h1>
 
@@ -394,9 +491,13 @@ export default function PaperPreview({ preview }: Props) {
                   {chunk(preview.authorBlocks, 3).map((row, r) => (
                     <div key={r} className="flex justify-center gap-x-6 mb-2 last:mb-0">
                       {row.map((lines, i) => (
-                        <div key={i} className="flex-1 text-[8.5px] text-center text-gray-700 leading-tight">
+                        <div key={i} className="flex-1 text-center text-gray-700 leading-tight" style={{ fontSize: FS.affiliation }}>
                           {lines.map((line, j) => (
-                            <p key={j}>{line}</p>
+                            // First line is the author's name (11pt "Author"
+                            // style); the rest are 9pt affiliation lines.
+                            <p key={j} style={j === 0 ? { fontSize: FS.author } : undefined}>
+                              {line}
+                            </p>
                           ))}
                         </div>
                       ))}
@@ -409,7 +510,11 @@ export default function PaperPreview({ preview }: Props) {
 
           {/* Wide figures — full width, above the columns, page 1 only */}
           {pageIndex === 0 && wideFigures.map((b, i) => (
-            <div key={`wide-${i}`} className="px-6 pt-2">
+            <div
+              key={`wide-${i}`}
+              className="pt-2"
+              style={{ paddingLeft: PAGE_PADDING_X, paddingRight: PAGE_PADDING_X }}
+            >
               <Block block={b} refCount={preview.references.length} />
             </div>
           ))}
@@ -423,8 +528,18 @@ export default function PaperPreview({ preview }: Props) {
               behavior. Each column has a hard width + clip as a backstop
               against any single line that's a sub-pixel too wide. */}
           <div
-            className="px-6 py-3 flex"
-            style={{ height: PAGE_COLUMN_HEIGHT, gap: COLUMN_GAP, boxSizing: 'border-box' }}
+            className="py-3 flex flex-1 min-h-0"
+            style={{
+              // A cap, not a fixed height: page 1 also carries the header and
+              // any wide figures, so its body row must be free to shrink. flex-1
+              // lets it take exactly the space those leave behind, which keeps
+              // every page a true A4 sheet regardless of what sits above.
+              maxHeight: PAGE_COLUMN_HEIGHT,
+              paddingLeft: PAGE_PADDING_X,
+              paddingRight: PAGE_PADDING_X,
+              gap: COLUMN_GAP,
+              boxSizing: 'border-box',
+            }}
           >
             {pageIndex === 0 && cols.left.length === 0 && cols.right.length === 0 && (
               <p className="text-[8px] text-gray-400 italic">
@@ -462,7 +577,10 @@ export default function PaperPreview({ preview }: Props) {
           </div>
 
           {/* Page number */}
-          <div className="px-6 pb-2 pt-1 border-t border-gray-100 text-[7px] text-gray-400 text-center">
+          <div
+            className="pb-2 pt-1 border-t border-gray-100 text-[7px] text-gray-400 text-center flex-shrink-0 mt-auto"
+            style={{ paddingLeft: PAGE_PADDING_X, paddingRight: PAGE_PADDING_X }}
+          >
             Page {pageIndex + 1} of {displayPages.length}
           </div>
         </div>

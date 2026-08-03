@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from 'next-auth';
+import { SESSION_MAX_AGE, SESSION_UPDATE_AGE } from '@/lib/session-config';
 
 /**
  * Edge-safe subset of the Auth.js config — no adapter (pg), no Credentials
@@ -10,7 +11,18 @@ import type { NextAuthConfig } from 'next-auth';
  * components), which do run on Node.
  */
 export const authConfig: NextAuthConfig = {
-  session: { strategy: 'jwt' },
+  session: {
+    strategy: 'jwt',
+    // Auth.js re-issues the JWT on activity, so maxAge behaves as an IDLE
+    // timeout rather than an absolute one: each refresh pushes the expiry out
+    // by another 30 minutes. An unattended machine logs itself out; someone
+    // actively writing is never interrupted.
+    maxAge: SESSION_MAX_AGE,
+    // How often an unchanged token is rewritten. Without this, Auth.js only
+    // refreshes once per day by default, so an active user's token would still
+    // hit maxAge and expire mid-session.
+    updateAge: SESSION_UPDATE_AGE,
+  },
   pages: {
     signIn: '/login',
   },

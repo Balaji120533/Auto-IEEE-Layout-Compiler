@@ -2,6 +2,7 @@
 
 import { SessionProvider } from 'next-auth/react';
 import type { Session } from 'next-auth';
+import SessionTimeout from './SessionTimeout';
 
 /**
  * `session` is resolved on the server and passed in, so the provider starts
@@ -19,5 +20,11 @@ export default function AuthProvider({
   children: React.ReactNode;
   session: Session | null;
 }) {
-  return <SessionProvider session={session}>{children}</SessionProvider>;
+  return (
+    <SessionProvider session={session}>
+      {children}
+      {/* Renders nothing unless signed in and close to expiry. */}
+      <SessionTimeout />
+    </SessionProvider>
+  );
 }

@@ -7,6 +7,12 @@
   html, body { height: 100%; }
 }
 
+@media (pointer: fine) {
+  html, body, a, button, [role="button"], input, textarea, select, label {
+    cursor: none;
+  }
+}
+
 @layer utilities {
   /* Scrollbar — minimal */
   .scroll-thin::-webkit-scrollbar { width: 4px; }

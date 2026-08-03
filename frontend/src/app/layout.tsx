@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import AuthProvider from '@/components/AuthProvider';
 import { auth } from '@/auth';
+import { SiteCursor } from '@/components/core/cursor';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -21,6 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", ' + inter.style.fontFamily }}
       >
         <AuthProvider session={session}>{children}</AuthProvider>
+        <SiteCursor />
       </body>
     </html>
   );

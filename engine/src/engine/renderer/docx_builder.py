@@ -156,6 +156,26 @@ def _strip_table_borders(table) -> None:
     tbl_pr.append(borders)
 
 
+def _suppress_list_numbering(paragraph) -> None:
+    """Turn off the paragraph style's automatic list numbering.
+
+    The Golden template's "figure caption" style carries <w:numPr> with a
+    numbered list that Word renders as "Fig. N." before the paragraph text.
+    That is correct for figures, but table captions reuse the same style for
+    its 8pt sizing and spacing — leaving them labelled "Fig. 1. TABLE I ...".
+
+    Setting numId to 0 is the OOXML way to say "no numbering" for this
+    paragraph, overriding the style without altering the style itself (so
+    figure captions keep numbering) and without duplicating its formatting.
+    """
+    p_pr = paragraph._p.get_or_add_pPr()
+    num_pr = OxmlElement("w:numPr")
+    num_id = OxmlElement("w:numId")
+    num_id.set(qn("w:val"), "0")
+    num_pr.append(num_id)
+    p_pr.append(num_pr)
+
+
 def _set_table_layout_fixed(table) -> None:
     """Force fixed column widths instead of Word auto-fitting to content."""
     tbl_pr = table._tbl.tblPr
@@ -483,8 +503,11 @@ class DocxBuilder:
         if not block.rows:
             return
 
-        # Caption above the table (IEEE convention: table caption before table)
+        # Caption above the table (IEEE convention: table caption before table).
+        # The shared "figure caption" style auto-numbers as "Fig. N." — suppress
+        # that here so the caption reads "TABLE I", not "Fig. 1. TABLE I".
         cap = self.doc.add_paragraph(style=S.FIGURE_CAPTION)
+        _suppress_list_numbering(cap)
         cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
         cap.add_run(f"TABLE {_anchor_roman(block.anchor)}").bold = True
         cap.add_run(f"  {block.caption}")
