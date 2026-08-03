@@ -8,8 +8,25 @@
 }
 
 @media (pointer: fine) {
-  html, body, a, button, [role="button"], input, textarea, select, label {
+  html, body, a, button, [role="button"], select, label {
     cursor: none;
+  }
+
+  /* Text fields keep the native I-beam. This is a writing tool — the caret
+     position matters more than a consistent dot, and the custom cursor gives
+     no indication of where text will land. */
+  input[type="text"], input[type="email"], input[type="password"],
+  input:not([type]), textarea {
+    cursor: text;
+  }
+}
+
+/* Respect a reduced-motion preference: the spring trail is decorative motion,
+   so fall back to the native cursor entirely rather than a lagging dot. */
+@media (prefers-reduced-motion: reduce) {
+  html, body, a, button, [role="button"], select, label,
+  input, textarea {
+    cursor: auto;
   }
 }
 
