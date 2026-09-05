@@ -53,33 +53,37 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white text-black flex items-center justify-center px-6">
+    <main className="relative min-h-screen bg-white text-black flex items-center justify-center px-6 overflow-hidden">
+      <div aria-hidden="true" className="absolute -inset-x-[10%] -top-[10%] bottom-0 pointer-events-none" style={{ filter: 'blur(70px)', opacity: 0.6 }}>
+        <div className="aurora-blob" style={{ width: 520, height: 440, left: -60, top: -60, background: 'radial-gradient(circle at 40% 40%, rgba(0,113,227,.32), rgba(0,113,227,0) 70%)', animation: 'drift1 22s ease-in-out infinite' }} />
+        <div className="aurora-blob" style={{ width: 460, height: 400, right: -80, top: 40, background: 'radial-gradient(circle at 50% 50%, rgba(175,82,222,.26), rgba(175,82,222,0) 70%)', animation: 'drift2 26s ease-in-out infinite' }} />
+      </div>
+
       <motion.div
-        className="w-full max-w-sm"
+        className="relative w-full max-w-sm bg-white rounded-3xl p-10"
+        style={{ boxShadow: '0 24px 60px rgba(0,0,0,.14)' }}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: EASE }}
       >
-        <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
-          ← Auto-IEEE Layout Compiler
-        </Link>
+        <p className="text-[15px] font-semibold tracking-tight text-[#1d1d1f]">Auto‑IEEE</p>
 
-        <h1 className="mt-6 text-3xl font-semibold tracking-tight">Create an account</h1>
-        <p className="mt-2 text-sm text-gray-500">Start typesetting your papers in minutes.</p>
+        <h1 className="mt-6 text-[34px] leading-tight font-semibold tracking-tight text-[#1d1d1f]">Create an account</h1>
+        <p className="mt-2 text-[15px] text-[#6e6e73] leading-relaxed">Start typesetting your papers in minutes.</p>
 
         <button
           type="button"
           onClick={() => signIn('google', { callbackUrl: '/editor' })}
-          className="mt-8 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full border border-gray-200 text-sm font-medium hover:bg-gray-50 transition-colors"
+          className="mt-8 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full border border-[#d2d2d7] text-sm font-medium hover:bg-[#f5f5f7] transition-colors"
         >
           <GoogleIcon />
           Continue with Google
         </button>
 
         <div className="flex items-center gap-3 my-6">
-          <div className="h-px flex-1 bg-gray-100" />
-          <span className="text-xs text-gray-400">or</span>
-          <div className="h-px flex-1 bg-gray-100" />
+          <div className="h-px flex-1 bg-[#e3e3e6]" />
+          <span className="text-xs text-[#a1a1a6]">or</span>
+          <div className="h-px flex-1 bg-[#e3e3e6]" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -89,7 +93,7 @@ export default function SignupPage() {
             placeholder="Full name"
             value={name}
             onChange={e => setName(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm placeholder-gray-300 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
+            className="apple-fld"
           />
           <input
             type="email"
@@ -97,7 +101,7 @@ export default function SignupPage() {
             placeholder="Email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm placeholder-gray-300 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
+            className="apple-fld"
           />
           <input
             type="password"
@@ -106,7 +110,7 @@ export default function SignupPage() {
             placeholder="Password (min. 8 characters)"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm placeholder-gray-300 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
+            className="apple-fld"
           />
 
           {error && <p className="text-xs text-red-500">{error}</p>}
@@ -114,15 +118,15 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-full bg-black text-white text-sm font-medium tracking-tight transition-colors hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="pill pill-primary w-full py-3 text-sm mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p className="mt-6 text-center text-sm text-[#6e6e73]">
           Already have an account?{' '}
-          <Link href="/login" className="text-black underline underline-offset-2 hover:text-gray-600">
+          <Link href="/login" className="text-[#0071e3] hover:text-[#0077ed]">
             Sign in
           </Link>
         </p>

@@ -92,20 +92,23 @@ export default function FormEditor({
   return (
     <div className="flex flex-col h-full bg-white relative overflow-hidden">
       {/* Top bar */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 flex-shrink-0">
+      <div className="glass-bar flex items-center gap-2 px-4 h-12 flex-shrink-0">
         <button
           onClick={() => setSidebarOpen(true)}
-          className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/5 transition-colors"
           title="Saved papers"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
-        <span className="flex-1 text-sm font-medium text-gray-700 truncate">
+        <span className="flex-1 text-sm font-medium text-[#1d1d1f] truncate">
           {form.title || 'New Paper'}
         </span>
-        <span className={`text-[11px] ${saveColor}`}>{saveText}</span>
+        <span className={`inline-flex items-center gap-1.5 text-[11px] ${saveColor}`}>
+          {saveStatus === 'saved' && <span className="w-1.5 h-1.5 rounded-full bg-[#34c759]" />}
+          {saveText}
+        </span>
       </div>
 
       {/* Tabs */}
@@ -116,14 +119,14 @@ export default function FormEditor({
             onClick={() => setTab(t.id)}
             className={[
               'relative flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium transition-colors',
-              tab === t.id ? 'text-black' : 'text-gray-400 hover:text-gray-600',
+              tab === t.id ? 'text-[#0071e3]' : 'text-gray-400 hover:text-gray-600',
             ].join(' ')}
           >
             <t.Icon />{t.label}
             {tab === t.id && (
               <motion.div
                 layoutId="form-tab-line"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0071e3]"
               />
             )}
           </button>
@@ -237,7 +240,7 @@ export default function FormEditor({
             <div className="flex-shrink-0 p-3 border-t border-gray-100 space-y-2">
               <button
                 onClick={() => { onNewProject(); setSidebarOpen(false); }}
-                className="w-full py-2.5 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800 transition-colors"
+                className="pill pill-primary w-full py-2.5 text-sm"
               >
                 + New Paper
               </button>
@@ -283,7 +286,7 @@ export default function FormEditor({
                     onClick={() => setProfileMenuOpen(o => !o)}
                     className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
                   >
-                    <div className="w-8 h-8 flex-shrink-0 rounded-full bg-black text-white flex items-center justify-center text-xs font-semibold">
+                    <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[#0071e3] text-white flex items-center justify-center text-xs font-semibold">
                       {initial}
                     </div>
                     <div className="min-w-0 flex-1">

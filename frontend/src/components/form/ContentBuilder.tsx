@@ -17,6 +17,7 @@ import { api } from '@/lib/api';
 import type { ImageWarning } from '@/lib/api';
 import { uid } from '@/types/paper-form';
 import { findCitationHints } from '@/lib/citationHints';
+import EquationEditor from '@/components/form/EquationEditor';
 
 type UploadResult = { ref: string; filename: string; warning?: ImageWarning | null };
 
@@ -440,21 +441,7 @@ function ItemEditor({ item, canRemove, onPatch, onRemove, onUploadImage, refCoun
       return <TableEditor item={item} removeBtn={removeBtn} onPatch={onPatch} />;
 
     case 'equation':
-      return (
-        <div className="bg-gray-50 rounded-lg p-3 space-y-1 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Equation (LaTeX)</span>
-            {removeBtn}
-          </div>
-          <input
-            className={SM_INPUT}
-            placeholder="\sum_{i=0}^{n} x_i = \frac{n(n+1)}{2}"
-            value={item.latex}
-            onChange={e => onPatch({ latex: e.target.value })}
-          />
-          <p className="text-[10px] text-gray-400">Enter LaTeX math — no need to add $$</p>
-        </div>
-      );
+      return <EquationEditor latex={item.latex} removeBtn={removeBtn} onPatch={onPatch} />
 
     case 'list':
       return (

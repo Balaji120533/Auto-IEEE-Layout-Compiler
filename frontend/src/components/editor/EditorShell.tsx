@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useFormProject } from '@/hooks/useFormProject';
 import { useCompileJob } from '@/hooks/useCompileJob';
 import { useToasts } from '@/hooks/useToasts';
-import { formToModel } from '@/lib/formToModel';
+import { formToModel, stripPlaceholders } from '@/lib/formToModel';
 import FormEditor from '@/components/form/FormEditor';
 import PreviewPane from './PreviewPane';
 import ToastStack from './ToastStack';
@@ -106,12 +106,14 @@ function formToPreview(form: PaperForm): DocPreview {
           }
           break;
         }
-        case 'equation':
-          if (item.latex?.trim()) {
+        case 'equation': {
+          const latex = stripPlaceholders(item.latex ?? '');
+          if (latex) {
             eqCount++;
-            blocks.push({ kind: 'equation', label: `(${eqCount})`, latex: item.latex.trim() });
+            blocks.push({ kind: 'equation', label: `(${eqCount})`, latex });
           }
           break;
+        }
         case 'list':
           if (item.items?.some(x => x.trim())) {
             blocks.push({ kind: 'list', style: item.style, items: item.items.filter(x => x.trim()) });

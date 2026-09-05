@@ -43,14 +43,48 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white text-black">
+      {/* Glass nav */}
+      <motion.div
+        className="glass-bar sticky top-0 z-20 flex items-center gap-7 px-6 sm:px-8 h-12"
+        animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
+        transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
+      >
+        <span className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] whitespace-nowrap">Auto‑IEEE</span>
+        <Link href="/editor" onClick={e => { e.preventDefault(); goToEditor(); }} className="text-xs text-[#6e6e73] hover:text-black transition-colors">Editor</Link>
+        <Link href="/guide" onClick={e => { e.preventDefault(); goTo('/guide'); }} className="text-xs text-[#6e6e73] hover:text-black transition-colors">Guide</Link>
+        <button
+          onClick={goToEditor}
+          className="pill pill-primary ml-auto text-xs px-4 py-1.5"
+        >
+          Open editor
+        </button>
+      </motion.div>
+
       {/* Hero */}
       <motion.section
-        className="relative flex flex-col items-center justify-center px-6 pt-40 pb-32 text-center overflow-hidden"
+        className="relative flex flex-col items-center justify-center px-6 pt-24 pb-8 text-center overflow-hidden"
         animate={isLeaving ? { opacity: 0, scale: 1.04, filter: 'blur(8px)' } : { opacity: 1, scale: 1, filter: 'blur(0px)' }}
         transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
       >
+        {/* Aurora background */}
+        <div aria-hidden="true" className="absolute -inset-x-[10%] -top-[10%] bottom-0 pointer-events-none" style={{ filter: 'blur(70px)', opacity: 0.85 }}>
+          <div className="aurora-blob" style={{ width: 620, height: 520, left: -60, top: -60, background: 'radial-gradient(circle at 40% 40%, rgba(0,113,227,.42), rgba(0,113,227,0) 70%)', animation: 'drift1 22s ease-in-out infinite' }} />
+          <div className="aurora-blob" style={{ width: 560, height: 480, right: -80, top: -20, background: 'radial-gradient(circle at 50% 50%, rgba(175,82,222,.34), rgba(175,82,222,0) 70%)', animation: 'drift2 26s ease-in-out infinite' }} />
+          <div className="aurora-blob" style={{ width: 640, height: 420, left: '28%', top: 220, background: 'radial-gradient(circle at 50% 50%, rgba(255,149,0,.22), rgba(255,45,85,.16) 45%, rgba(255,45,85,0) 72%)', animation: 'drift3 30s ease-in-out infinite' }} />
+        </div>
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none opacity-50"
+          style={{
+            backgroundImage: 'radial-gradient(rgba(0,0,0,.12) 1px, transparent 1px)',
+            backgroundSize: '22px 22px',
+            WebkitMaskImage: 'radial-gradient(120% 80% at 50% 12%, #000 20%, transparent 72%)',
+            maskImage: 'radial-gradient(120% 80% at 50% 12%, #000 20%, transparent 72%)',
+          }}
+        />
+
         <motion.p
-          className="text-sm font-medium tracking-tight text-gray-400 mb-5"
+          className="relative text-[19px] font-medium tracking-tight text-[#0071e3] mb-3"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE }}
@@ -59,18 +93,18 @@ export default function Home() {
         </motion.p>
 
         <motion.h1
-          className="text-[44px] sm:text-[64px] leading-[1.05] font-semibold tracking-tight max-w-3xl"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: EASE, delay: 0.08 }}
+          className="relative text-[44px] sm:text-[68px] leading-[1.05] font-semibold tracking-tight max-w-3xl text-[#1d1d1f]"
+          initial={{ opacity: 0, filter: 'blur(14px)', scale: 1.05 }}
+          animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
+          transition={{ duration: 1, ease: EASE, delay: 0.08 }}
         >
           Your draft.
           <br />
-          <span className="text-gray-400">Perfectly typeset.</span>
+          <span className="text-[#86868b]">Perfectly typeset.</span>
         </motion.h1>
 
         <motion.p
-          className="mt-6 text-lg sm:text-xl text-gray-500 max-w-xl leading-relaxed"
+          className="relative mt-6 text-lg sm:text-xl text-[#6e6e73] max-w-xl leading-relaxed"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: EASE, delay: 0.16 }}
@@ -79,68 +113,134 @@ export default function Home() {
           double-column IEEE paper — no LaTeX, no Word wrangling.
         </motion.p>
 
-        <motion.button
-          onClick={goToEditor}
-          className="mt-10 px-8 py-3.5 rounded-full bg-black text-white text-[15px] font-medium tracking-tight transition-colors hover:bg-gray-800"
+        <motion.div
+          className="relative flex gap-3 justify-center mt-8"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE, delay: 0.26 }}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
         >
-          Start writing →
-        </motion.button>
+          <button onClick={goToEditor} className="pill pill-primary text-[15px] px-6 py-3">
+            Start writing
+          </button>
+          <Link
+            href="/guide"
+            onClick={e => { e.preventDefault(); goTo('/guide'); }}
+            className="pill pill-quiet text-[15px] px-6 py-3"
+          >
+            Read the guide
+          </Link>
+        </motion.div>
 
         <motion.div
-          className="mt-4 flex flex-col items-center gap-3"
+          className="relative mt-4 flex flex-col items-center gap-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-[#a1a1a6]">
             No AI in the pipeline. Just your paper, formatted right.
           </p>
-          <Link
-            href="/guide"
-            onClick={e => { e.preventDefault(); goTo('/guide'); }}
-            className="text-[13px] text-gray-500 underline underline-offset-4 decoration-gray-300 hover:text-black hover:decoration-black transition-colors"
+        </motion.div>
+      </motion.section>
+
+      {/* Live preview visual */}
+      <motion.section
+        className="relative flex justify-center px-6 pt-8 pb-24"
+        animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
+        transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
+      >
+        <motion.div
+          className="relative w-full max-w-[360px]"
+          initial={{ opacity: 0, y: 26 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.6, ease: EASE }}
+        >
+          <motion.div
+            className="bg-white rounded-[10px] p-5 mx-auto"
+            style={{ width: 340, height: 460, boxShadow: '0 30px 70px rgba(0,0,0,.16), 0 2px 6px rgba(0,0,0,.08)' }}
+            whileHover={{ y: -8, boxShadow: '0 44px 90px rgba(0,0,0,.2)' }}
+            transition={{ duration: 0.5, ease: EASE }}
           >
-            Read the user guide
-          </Link>
+            <div className="h-2 w-2/3 bg-[#1d1d1f] rounded-sm mx-auto mb-1.5" />
+            <div className="h-[3px] w-2/5 bg-[#d2d2d7] rounded-sm mx-auto mb-1" />
+            <div className="h-[3px] w-1/3 bg-[#e3e3e6] rounded-sm mx-auto mb-4" />
+            <div className="flex gap-3.5 overflow-hidden">
+              {[0, 1].map(col => (
+                <div key={col} className={col === 0 ? 'flex-1 overflow-hidden pr-2.5 border-r border-[#f2f2f4]' : 'flex-1 overflow-hidden'}>
+                  {Array.from({ length: 16 }).map((_, i) => (
+                    <div key={i} className="h-[3px] bg-[#e3e3e6] rounded-sm mb-1.5" style={{ width: `${55 + ((i * 13) % 40)}%` }} />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+          <motion.div
+            className="absolute -right-6 top-7 px-3.5 py-2 rounded-full bg-[#0071e3] text-white text-xs font-medium"
+            style={{ boxShadow: '0 10px 26px rgba(0,113,227,.4)' }}
+            animate={{ y: [0, -9, 0] }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            PDF ready
+          </motion.div>
+          <p className="text-xs text-[#86868b] text-center mt-4">Live two-column preview — exactly what compiles.</p>
         </motion.div>
       </motion.section>
 
       {/* Feature strip */}
       <motion.section
-        className="border-t border-gray-100 px-6 py-24"
+        className="bg-[#f5f5f7] px-6 sm:px-16 py-22"
         animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
         transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
       >
-        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-8">
-          {FEATURES.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
-              transition={{ duration: 0.6, ease: EASE, delay: i * 0.08 }}
-            >
-              <h3 className="text-[17px] font-semibold tracking-tight mb-2">{f.title}</h3>
-              <p className="text-[15px] text-gray-500 leading-relaxed">{f.body}</p>
-            </motion.div>
-          ))}
+        <div className="max-w-5xl mx-auto">
+          <motion.h2
+            className="text-[32px] sm:text-[40px] leading-tight font-semibold tracking-tight text-[#1d1d1f] max-w-[22ch] mb-10"
+            initial={{ opacity: 0, y: 26 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.6, ease: EASE }}
+          >
+            Three things it does better than your template.
+          </motion.h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {FEATURES.map((f, i) => (
+              <motion.div
+                key={f.title}
+                className="bg-white rounded-2xl p-6"
+                initial={{ opacity: 0, y: 26 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, ease: EASE, delay: i * 0.06 }}
+                whileHover={{ y: -6, boxShadow: '0 18px 40px rgba(0,0,0,.1)' }}
+              >
+                <p className="text-[13px] font-semibold text-[#0071e3] mb-2">{f.title}</p>
+                <p className="text-[15px] leading-relaxed text-[#1d1d1f]">{f.body}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </motion.section>
 
       {/* Closing CTA */}
       <motion.section
-        className="border-t border-gray-100 px-6 py-24 text-center"
+        className="relative px-6 py-26 text-center overflow-hidden"
         animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
         transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
       >
+        <div
+          aria-hidden="true"
+          className="absolute left-1/2 top-1/2 pointer-events-none"
+          style={{
+            width: 760, height: 420, transform: 'translate(-50%,-50%)',
+            filter: 'blur(80px)', opacity: 0.7,
+            background: 'radial-gradient(closest-side, rgba(0,113,227,.28), rgba(175,82,222,.16) 55%, transparent 75%)',
+            animation: 'drift2 24s ease-in-out infinite',
+          }}
+        />
         <motion.h2
-          className="text-3xl sm:text-4xl font-semibold tracking-tight"
-          initial={{ opacity: 0, y: 12 }}
+          className="relative text-[32px] sm:text-[48px] leading-tight font-semibold tracking-tight text-[#1d1d1f]"
+          initial={{ opacity: 0, y: 26 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6, ease: EASE }}
@@ -148,26 +248,24 @@ export default function Home() {
           Stop fighting your template.
         </motion.h2>
         <motion.div
+          className="relative mt-7"
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6, ease: EASE, delay: 0.1 }}
         >
-          <button
-            onClick={goToEditor}
-            className="mt-8 px-8 py-3.5 rounded-full bg-black text-white text-[15px] font-medium tracking-tight transition-colors hover:bg-gray-800"
-          >
+          <button onClick={goToEditor} className="pill pill-primary text-base px-7 py-3.5">
             Open the editor
           </button>
         </motion.div>
       </motion.section>
 
       <motion.footer
-        className="px-6 py-10 text-center text-xs text-gray-300"
+        className="bg-[#f5f5f7] px-6 sm:px-16 py-7 text-center text-xs text-[#86868b]"
         animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
         transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
       >
-        Auto-IEEE Layout Compiler
+        Auto‑IEEE Layout Compiler · Your papers stay in your browser.
       </motion.footer>
     </main>
   );

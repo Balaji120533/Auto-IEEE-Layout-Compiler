@@ -4,6 +4,20 @@ import type { DocumentModel, Block } from '@/types/document-model';
 const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
                'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII'];
 
+/** The visual editor marks empty slots with `\placeholder{}`, which is a
+ *  MathLive editing affordance the renderer doesn't understand. Drop the
+ *  wrapper (keeping any content a user typed into it) before the LaTeX
+ *  crosses into the document model. */
+export function stripPlaceholders(latex: string): string {
+  let out = latex;
+  let prev: string;
+  do {
+    prev = out;
+    out = out.replace(/\\placeholder\{([^{}]*)\}/g, '$1');
+  } while (out !== prev);
+  return out.trim();
+}
+
 export function formToModel(form: PaperForm): DocumentModel {
   const blocks: Block[] = [];
   let figCounter   = 0;
@@ -86,12 +100,14 @@ export function formToModel(form: PaperForm): DocumentModel {
           break;
         }
 
-        case 'equation':
-          if (item.latex.trim()) {
+        case 'equation': {
+          const latex = stripPlaceholders(item.latex);
+          if (latex) {
             eqCounter++;
-            blocks.push({ type: 'equation', anchor: `EQ ${eqCounter}`, latex: item.latex.trim(), inline: false });
+            blocks.push({ type: 'equation', anchor: `EQ ${eqCounter}`, latex, inline: false });
           }
           break;
+        }
 
         case 'list':
           if (item.items.some(i => i.trim())) {

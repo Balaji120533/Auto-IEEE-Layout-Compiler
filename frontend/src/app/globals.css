@@ -36,3 +36,38 @@
   .scroll-thin::-webkit-scrollbar-track { background: transparent; }
   .scroll-thin::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
 }
+
+/* ---- Apple-style shared tokens (mockup 5a/5b/5c/5d) ---- */
+@keyframes drift1 { 0%{transform:translate3d(-6%,-4%,0) scale(1)} 50%{transform:translate3d(8%,6%,0) scale(1.15)} 100%{transform:translate3d(-6%,-4%,0) scale(1)} }
+@keyframes drift2 { 0%{transform:translate3d(6%,3%,0) scale(1.1)} 50%{transform:translate3d(-8%,-6%,0) scale(.95)} 100%{transform:translate3d(6%,3%,0) scale(1.1)} }
+@keyframes drift3 { 0%{transform:translate3d(0,6%,0) scale(1)} 50%{transform:translate3d(-6%,-8%,0) scale(1.2)} 100%{transform:translate3d(0,6%,0) scale(1)} }
+@keyframes floaty { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
+
+.pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 980px; font-weight: 500; letter-spacing: -0.01em;
+  transition: transform .4s cubic-bezier(.22,1,.36,1), background-color .3s ease;
+}
+.pill-primary { background: #0071e3; color: #fff; }
+.pill-primary:hover { background: #0077ed; transform: scale(1.035); }
+.pill-quiet { background: rgba(0,0,0,.05); color: #1d1d1f; }
+.pill-quiet:hover { background: rgba(0,0,0,.09); transform: scale(1.035); }
+
+.glass-bar {
+  background: rgba(255,255,255,.72);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,.07);
+}
+
+.aurora-blob {
+  position: absolute; border-radius: 50%; pointer-events: none; will-change: transform;
+}
+
+.apple-fld {
+  width: 100%; font-size: 15px; color: #1d1d1f; background: #f5f5f7;
+  border: 1px solid transparent; border-radius: 12px; padding: 11px 14px;
+  outline: none; transition: border-color .25s ease, background-color .25s ease, box-shadow .25s ease;
+}
+.apple-fld:focus { background: #fff; border-color: #0071e3; box-shadow: 0 0 0 4px rgba(0,113,227,.15); }
+.apple-lbl { display: block; font-size: 12px; color: #6e6e73; margin-bottom: 6px; }
