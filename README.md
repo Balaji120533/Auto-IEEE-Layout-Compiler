@@ -30,6 +30,9 @@ download a fully formatted paper — no LaTeX, no Word wrangling.
   bracket citation `[n]` linked to your reference list.
 - **Local persistence** — projects auto-save to `localStorage`; nothing leaves
   your machine.
+- **Authentication** — sign in with Google or email/password (Auth.js,
+  JWT sessions). A 30-minute idle timeout signs inactive sessions out
+  automatically; actively writing keeps the session alive.
 
 ---
 
@@ -50,7 +53,7 @@ Three tiers, REST between them:
 
 | Tier | Tech | Port | Responsibility |
 |------|------|------|----------------|
-| **Frontend** | Next.js 14 (App Router), Tailwind, Framer Motion, KaTeX | 3000 | Two-pane editor + live preview; `localStorage` persistence |
+| **Frontend** | Next.js 14 (App Router), Tailwind, Framer Motion, KaTeX, Auth.js | 3000 | Two-pane editor + live preview; auth; `localStorage` persistence |
 | **Gateway** | Node.js, Fastify, TypeScript | 3001 | REST API, image object-storage, async compile jobs (SSE) |
 | **Engine** | Python 3.11, FastAPI, docxtpl / python-docx, matplotlib, LibreOffice | 8000 | Purely deterministic `.docx` + `.pdf` generation, preflight |
 
@@ -107,14 +110,16 @@ type your paper.
 
 ## 🧑‍💻 Usage
 
-1. **Fill the form** on the left — title, authors, abstract, keywords.
-2. **Add sections**, and inside each section add content blocks: paragraphs,
+1. **Sign in** — Google OAuth or email/password. Opening the editor while
+   signed out redirects to `/login` and returns you afterward.
+2. **Fill the form** on the left — title, authors, abstract, keywords.
+3. **Add sections**, and inside each section add content blocks: paragraphs,
    sub-sections, figures (click to upload an image), equations
    (`x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}` — no `$$` needed), and lists. Type
    `[CITE 1]` inside a paragraph to cite reference #1 — it renders as `[1]`.
-3. **Watch the right pane** render a live two-column IEEE preview with your
+4. **Watch the right pane** render a live two-column IEEE preview with your
    real images and typeset equations.
-4. **Click Compile** to generate the `.docx` and `.pdf`. Any preflight warnings
+5. **Click Compile** to generate the `.docx` and `.pdf`. Any preflight warnings
    (low-DPI figures, page count, etc.) are listed above the download buttons.
    Download once the job finishes.
 
