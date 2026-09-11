@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Callable
 
 from engine.math.matplotlib_backend import MatplotlibMathBackend
-from engine.pdf import select_backend
+from engine.pdf import select_backends
 from engine.preflight.checks import check_images, check_pdf_pages
 from engine.renderer.docx_builder import DocxBuilder
 from engine.schema import DocumentModel, EquationBlock
@@ -85,7 +85,10 @@ class RenderPipeline:
         return artifacts
 
     async def _convert_to_pdf(self, docx_path: Path) -> Path | None:
-        backend = select_backend(self.progress)
-        if backend is None:
-            return None
-        return await backend.convert(docx_path, self.output_dir)
+        backends = select_backends(self.progress)
+        for backend in backends:
+            pdf_path = await backend.convert(docx_path, self.output_dir)
+            if pdf_path is not None:
+                return pdf_path
+            self.progress(f"{type(backend).__name__} failed — trying next PDF backend...")
+        return None

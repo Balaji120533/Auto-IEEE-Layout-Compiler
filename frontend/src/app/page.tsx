@@ -62,7 +62,7 @@ export default function Home() {
 
       {/* Hero */}
       <motion.section
-        className="relative flex flex-col items-center justify-center px-6 pt-24 pb-8 text-center overflow-hidden"
+        className="relative flex flex-col items-center justify-center px-6 pt-32 pb-16 text-center overflow-hidden"
         animate={isLeaving ? { opacity: 0, scale: 1.04, filter: 'blur(8px)' } : { opacity: 1, scale: 1, filter: 'blur(0px)' }}
         transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
       >
@@ -145,7 +145,7 @@ export default function Home() {
 
       {/* Live preview visual */}
       <motion.section
-        className="relative flex justify-center px-6 pt-8 pb-24"
+        className="relative flex justify-center px-6 pt-8 pb-32"
         animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
         transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
       >
@@ -189,13 +189,13 @@ export default function Home() {
 
       {/* Feature strip */}
       <motion.section
-        className="bg-[#f5f5f7] px-6 sm:px-16 py-22"
+        className="bg-[#f5f5f7] px-6 sm:px-16 py-28"
         animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
         transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
       >
         <div className="max-w-5xl mx-auto">
           <motion.h2
-            className="text-[32px] sm:text-[40px] leading-tight font-semibold tracking-tight text-[#1d1d1f] max-w-[22ch] mb-10"
+            className="text-[32px] sm:text-[40px] leading-tight font-semibold tracking-tight text-[#1d1d1f] max-w-[22ch] mb-14"
             initial={{ opacity: 0, y: 26 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
@@ -203,7 +203,7 @@ export default function Home() {
           >
             Three things it does better than your template.
           </motion.h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {FEATURES.map((f, i) => (
               <motion.div
                 key={f.title}
@@ -224,7 +224,7 @@ export default function Home() {
 
       {/* Closing CTA */}
       <motion.section
-        className="relative px-6 py-26 text-center overflow-hidden"
+        className="relative px-6 py-32 text-center overflow-hidden"
         animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
         transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
       >

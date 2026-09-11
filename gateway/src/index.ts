@@ -5,6 +5,7 @@ import multipart from '@fastify/multipart';
 import { healthRoutes } from './routes/health';
 import { projectRoutes } from './routes/projects';
 import { jobRoutes } from './routes/jobs';
+import { pdfConvertRoutes } from './routes/pdf-convert';
 
 const server = Fastify({ logger: { level: 'info' } });
 
@@ -17,6 +18,7 @@ async function start() {
   await server.register(healthRoutes);
   await server.register(projectRoutes);
   await server.register(jobRoutes);
+  await server.register(pdfConvertRoutes);
 
   try {
     await server.listen({ port: PORT, host: '0.0.0.0' });
