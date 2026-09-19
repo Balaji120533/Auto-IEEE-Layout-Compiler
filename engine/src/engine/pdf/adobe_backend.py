@@ -6,7 +6,13 @@ servers for conversion, same tradeoff as CloudConvertBackend. Used as a
 fallback when CloudConvert is unavailable or fails.
 
 API flow (Adobe PDF Services REST API v1, server-to-server OAuth):
-  1. POST /token — exchange client id/secret for an access token
+  1. POST {API_BASE}/token — exchange client id/secret for an access token.
+     This is a proxy token endpoint on pdf-services.adobe.io itself, NOT the
+     generic Adobe IMS OAuth host (ims-na1.adobelogin.com) — it takes only
+     client_id/client_secret, no grant_type or scope field. Confirmed by
+     reading the official Node SDK's ServicePrincipalAuthenticator, which is
+     the actual authority here since Adobe's own REST API docs describe the
+     generic IMS flow that these free-tier credentials are not provisioned for.
   2. POST /assets — register an upload and get a presigned URI
   3. PUT to the presigned URI with the docx bytes
   4. POST /operation/createpdf — start the conversion job
@@ -21,7 +27,6 @@ from typing import Callable
 
 import httpx
 
-IMS_BASE = "https://ims-na1.adobelogin.com"
 API_BASE = "https://pdf-services.adobe.io"
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 POLL_INTERVAL_S = 2.0
@@ -77,16 +82,14 @@ class AdobeBackend:
 
     async def _get_access_token(self, client: httpx.AsyncClient) -> str | None:
         res = await client.post(
-            f"{IMS_BASE}/ims/token/v3",
+            f"{API_BASE}/token",
             data={
-                "grant_type": "client_credentials",
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
-                "scope": "openid,AdobeID,DCAPI",
             },
         )
         if res.status_code == 401 or res.status_code == 400:
-            self.progress(f"Adobe PDF Services: authentication failed ({res.status_code}).")
+            self.progress(f"Adobe PDF Services: authentication failed ({res.status_code}): {res.text[:200]}")
             return None
         res.raise_for_status()
         return res.json()["access_token"]
