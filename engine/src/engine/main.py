@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
@@ -12,12 +13,14 @@ from engine.api.jobs import router as jobs_router
 
 app = FastAPI(title="IEEE Paper Compiler — Engine", version="0.2.0")
 
+# Dev defaults; in deployment the gateway lives on another origin, so its URL
+# is supplied via ALLOWED_ORIGINS (comma-separated) rather than hardcoded.
+_default_origins = ["http://localhost:3000", "http://localhost:3001"]
+_env_origins = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
-    ],
+    allow_origins=_env_origins or _default_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

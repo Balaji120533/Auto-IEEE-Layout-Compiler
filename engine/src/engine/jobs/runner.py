@@ -29,5 +29,9 @@ async def run_compile_job(
         artifacts = await pipeline.run()
         job_store.set_done(job_id, artifacts)
     except Exception as exc:
+        # This runs as a detached asyncio task (fire-and-forget from
+        # api/compile.py) — nothing awaits it, so re-raising here would only
+        # produce an "exception was never retrieved" warning with no other
+        # effect. set_failed is the actual, observable failure path; the
+        # frontend reads job status, not this task's result.
         job_store.set_failed(job_id, str(exc))
-        raise

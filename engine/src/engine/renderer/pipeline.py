@@ -54,10 +54,19 @@ class RenderPipeline:
             eq_dir = self.output_dir / "eq"
             backend = MatplotlibMathBackend(eq_dir)
             for eq in eq_blocks:
-                img = await asyncio.get_event_loop().run_in_executor(
-                    None, backend.render, eq.latex, eq.inline
-                )
-                math_images[eq.anchor] = img
+                try:
+                    img = await asyncio.get_event_loop().run_in_executor(
+                        None, backend.render, eq.latex, eq.inline
+                    )
+                    math_images[eq.anchor] = img
+                except Exception as exc:
+                    # A single unsupported/malformed equation shouldn't abort the
+                    # whole compile — fall back to plain LaTeX text for this one
+                    # (DocxBuilder already does that when an anchor has no image)
+                    # and surface it as a preflight warning instead of a crash.
+                    message = f"Could not render equation {eq.anchor}: {exc}"
+                    self.progress(f"  Preflight warn {eq.anchor}: {message}")
+                    self.warn("warn", eq.anchor, message)
 
         # 3 — Build DOCX
         self.progress("Building DOCX...")

@@ -1,0 +1,55 @@
+services:
+  # ── Processing Engine (Python / FastAPI) ────────────────────────────────────
+  - type: web
+    name: ieee-engine
+    runtime: python
+    plan: free
+    rootDir: engine
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn engine.main:app --host 0.0.0.0 --port $PORT --app-dir src
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      # Set in the Render dashboard (marked sync:false so they are never
+      # committed to git). LibreOffice is unavailable on Render, so PDF
+      # conversion falls back to CloudConvert, then Adobe.
+      - key: CLOUDCONVERT_API_KEY
+        sync: false
+      - key: PDF_SERVICES_CLIENT_ID
+        sync: false
+      - key: PDF_SERVICES_CLIENT_SECRET
+        sync: false
+      # Full https:// URL of the gateway service, e.g.
+      # https://ieee-gateway.onrender.com — set in the dashboard after the
+      # gateway's first deploy (Render's fromService yields a bare host with
+      # no scheme, which CORS origins require).
+      - key: ALLOWED_ORIGINS
+        sync: false
+
+  # ── Orchestrator Gateway (Node / Fastify) ───────────────────────────────────
+  - type: web
+    name: ieee-gateway
+    runtime: node
+    plan: free
+    rootDir: gateway
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      # Full https:// URL of the engine service, e.g.
+      # https://ieee-engine.onrender.com — set in the dashboard after the
+      # engine's first deploy (it is used as a URL prefix, so it needs the
+      # scheme that Render's fromService does not provide).
+      - key: ENGINE_URL
+        sync: false
+      # Your Vercel deployment URL — set in the dashboard once the frontend
+      # is deployed (CORS origin for browser requests).
+      - key: FRONTEND_URL
+        sync: false
+      - key: PDF_SERVICES_CLIENT_ID
+        sync: false
+      - key: PDF_SERVICES_CLIENT_SECRET
+        sync: false
