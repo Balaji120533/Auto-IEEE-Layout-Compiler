@@ -38,7 +38,7 @@ services:
     # typescript/@types/node and breaking the build. --include=dev forces
     # them in for the build step; only compiled dist/ + prod deps run at
     # startup.
-    buildCommand: npm --version && node --version && pwd && ls && npm install --include=dev && ls node_modules/typescript node_modules/@types/node 2>&1 && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /health
     envVars:
