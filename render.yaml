@@ -33,7 +33,12 @@ services:
     runtime: node
     plan: free
     rootDir: gateway
-    buildCommand: npm install && npm run build
+    # Render sets NODE_ENV=production for Node web services, under which
+    # `npm install` skips devDependencies by default — silently dropping
+    # typescript/@types/node and breaking the build. --include=dev forces
+    # them in for the build step; only compiled dist/ + prod deps run at
+    # startup.
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /health
     envVars:
