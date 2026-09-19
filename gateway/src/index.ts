@@ -10,7 +10,10 @@ import { pdfConvertRoutes } from './routes/pdf-convert';
 const server = Fastify({ logger: { level: 'info' } });
 
 const PORT = Number(process.env.PORT ?? 3001);
-const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+// An env var set to an empty string on the host (vs. left unset) bypasses
+// `??`, so trim and fall through explicitly instead of trusting the platform
+// never does that — @fastify/cors throws on every request if origin is ''.
+const FRONTEND_URL = process.env.FRONTEND_URL?.trim() || 'http://localhost:3000';
 
 async function start() {
   await server.register(cors, { origin: FRONTEND_URL });
