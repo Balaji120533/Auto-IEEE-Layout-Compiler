@@ -2,6 +2,7 @@
   "name": "ieee-paper-compiler",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.5.3",
   "scripts": {
     "dev": "concurrently --names \"frontend,gateway,engine\" --prefix-colors \"cyan,green,yellow\" \"pnpm --filter frontend dev\" \"pnpm --filter gateway dev\" \"powershell -ExecutionPolicy Bypass -File scripts/dev-engine.ps1\"",
     "install:all": "pnpm install && uv --directory engine sync",
