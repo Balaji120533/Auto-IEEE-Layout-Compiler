@@ -48,7 +48,15 @@ export default function LoginForm() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: EASE }}
       >
-        <p className="text-[15px] font-semibold tracking-tight text-[#1d1d1f]">Auto‑IEEE</p>
+        <Link
+          href="/"
+          aria-label="Back to home"
+          className="inline-flex items-center justify-center w-9 h-9 -ml-2 -mt-1 rounded-full text-[#6e6e73] hover:bg-[#f5f5f7] hover:text-black transition-colors"
+        >
+          <BackArrowIcon />
+        </Link>
+
+        <p className="mt-3 text-[15px] font-semibold tracking-tight text-[#1d1d1f]">Auto‑IEEE</p>
 
         <h1 className="mt-6 text-[34px] leading-tight font-semibold tracking-tight text-[#1d1d1f]">Welcome back</h1>
         <p className="mt-2 text-[15px] text-[#6e6e73] leading-relaxed">
@@ -109,6 +117,15 @@ export default function LoginForm() {
         </p>
       </motion.div>
     </main>
+  );
+}
+
+function BackArrowIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 12H5" />
+      <path d="M12 19l-7-7 7-7" />
+    </svg>
   );
 }
 
