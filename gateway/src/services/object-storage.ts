@@ -160,9 +160,13 @@ function createR2Storage(): ObjectStorage {
 // assets are public by default, giving the engine a plain HTTPS URL to fetch.
 
 function createCloudinaryStorage(): ObjectStorage {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  // Host dashboards (Render, etc.) can silently include a trailing newline or
+  // space when a credential is pasted in — Cloudinary's HMAC signature check
+  // then fails with "Invalid Signature" instead of a clearer auth error,
+  // since a single stray whitespace character changes the signed string.
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+  const apiKey = process.env.CLOUDINARY_API_KEY?.trim();
+  const apiSecret = process.env.CLOUDINARY_API_SECRET?.trim();
 
   if (!cloudName || !apiKey || !apiSecret) {
     throw new Error(
