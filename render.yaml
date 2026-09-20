@@ -58,3 +58,17 @@ services:
         sync: false
       - key: PDF_SERVICES_CLIENT_SECRET
         sync: false
+      # Cloudinary (object storage for uploaded images — free tier, no card
+      # required). Required on Render: gateway and engine are separate
+      # services with separate filesystems, so a locally-saved image would
+      # only ever exist on the gateway's own disk — and gets wiped on every
+      # cold start or redeploy anyway, since Render's free tier has no
+      # persistent disk.
+      - key: OBJECT_STORAGE
+        value: cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

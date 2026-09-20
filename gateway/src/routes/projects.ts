@@ -1,5 +1,4 @@
 import type { FastifyInstance } from 'fastify';
-import { createReadStream, existsSync } from 'fs';
 import { extname } from 'path';
 import { projectStore } from '../services/project-store';
 import { storage } from '../services/object-storage';
@@ -58,7 +57,8 @@ export async function projectRoutes(server: FastifyInstance) {
     const ref = await storage.save(project.id, filename, data.file);
     projectStore.addImageRef(project.id, ref);
 
-    const warning = await checkImageDpi(storage.absolutePath(ref), filename);
+    const buf = await storage.read(ref);
+    const warning = await checkImageDpi(buf, filename);
 
     return reply.status(201).send({ ref, filename, warning });
   });
@@ -71,12 +71,11 @@ export async function projectRoutes(server: FastifyInstance) {
       // Guard against path traversal in the filename segment.
       const filename = req.params.filename.replace(/[/\\]/g, '_');
       const ref = `${req.params.id}/${filename}`;
-      const abs = storage.absolutePath(ref);
-      if (!existsSync(abs)) return reply.status(404).send({ error: 'Image not found' });
+      if (!(await storage.exists(ref))) return reply.status(404).send({ error: 'Image not found' });
 
       const type = mimeFromExt(filename);
       if (type) reply.header('Content-Type', type);
-      return reply.send(createReadStream(abs));
+      return reply.send(await storage.read(ref));
     },
   );
 

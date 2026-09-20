@@ -6,8 +6,6 @@
  * PNG pHYs chunk / JPEG JFIF-APP0 (or EXIF) resolution field directly from the
  * file bytes — no image library needed for that.
  */
-import { readFile } from 'fs/promises';
-
 const MIN_DPI = 150; // matches engine/preflight/checks.py MIN_DPI
 
 export interface ImageWarning {
@@ -83,9 +81,8 @@ function detectDpi(buf: Buffer): Dpi | null {
 /** Check a single just-uploaded image file for the same DPI concerns the
  * engine's compile-time preflight enforces, so the user sees the warning
  * immediately instead of only after a full compile. */
-export async function checkImageDpi(absPath: string, filename: string): Promise<ImageWarning | null> {
+export async function checkImageDpi(buf: Buffer, filename: string): Promise<ImageWarning | null> {
   try {
-    const buf = await readFile(absPath);
     const dpi = detectDpi(buf);
     if (!dpi) return null; // no DPI metadata present — nothing to warn about here
     if (Math.min(dpi.x, dpi.y) < MIN_DPI) {
