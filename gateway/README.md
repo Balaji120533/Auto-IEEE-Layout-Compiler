@@ -1,4 +1,4 @@
-# Gateway — Auto-IEEE Layout Compiler
+# Gateway — Scribe (Auto-IEEE Layout Compiler)
 
 Node.js + Fastify + TypeScript. Orchestrates compile jobs, proxies AI calls, manages object storage.
 

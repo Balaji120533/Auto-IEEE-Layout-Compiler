@@ -1,14 +1,20 @@
-# Auto-IEEE Layout Compiler
+<p align="center">
+  <img src="frontend/public/scribe-mark.png" alt="Scribe logo" width="140" />
+</p>
 
-Typesets unformatted research drafts into submission-ready **double-column IEEE
+<h1 align="center">Scribe</h1>
+
+<p align="center"><strong>From ideas to IEEE.</strong></p>
+
+---
+
+Scribe typesets unformatted research drafts into submission-ready **double-column IEEE
 documents** (`.docx` + `.pdf`). Paste your title, abstract, sections, figures and
 equations into a structured editor, watch a live preview build itself, and
 download a fully formatted paper — no LaTeX, no Word wrangling.
 
 > **Philosophy — a typesetter, not a writer.** The formatting engine is fully
-> deterministic, with zero AI in the loop anywhere in the pipeline. Grammar
-> checking is intentionally left to dedicated tools (e.g. Grammarly) rather
-> than duplicated here.
+> deterministic, with zero AI in the loop anywhere in the pipeline.
 
 ---
 

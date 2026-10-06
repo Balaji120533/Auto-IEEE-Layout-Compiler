@@ -1,4 +1,4 @@
-# Engine — Auto-IEEE Layout Compiler
+# Engine — Scribe
 
 Python + FastAPI + uv. Purely deterministic processing: accepts a JSON document model,
 renders a `.docx` via `docxtpl`, converts to `.pdf` via headless LibreOffice.
