@@ -1,4 +1,4 @@
-# Frontend — Auto-IEEE Layout Compiler
+# Frontend — Scribe (Auto-IEEE Layout Compiler)
 
 Next.js 14 App Router + Tailwind CSS + Framer Motion.
 

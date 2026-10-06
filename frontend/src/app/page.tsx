@@ -49,7 +49,10 @@ export default function Home() {
         animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
         transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
       >
-        <span className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] whitespace-nowrap">Auto‑IEEE</span>
+        <span className="flex items-center gap-1.5 text-[15px] font-semibold tracking-tight text-[#1d1d1f] whitespace-nowrap">
+          <img src="/scribe-mark.png" alt="" className="h-6 w-6" />
+          Scribe
+        </span>
         <Link href="/editor" onClick={e => { e.preventDefault(); goToEditor(); }} className="text-xs text-[#6e6e73] hover:text-black transition-colors">Editor</Link>
         <Link href="/guide" onClick={e => { e.preventDefault(); goTo('/guide'); }} className="text-xs text-[#6e6e73] hover:text-black transition-colors">Guide</Link>
         <button
@@ -89,7 +92,7 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE }}
         >
-          Auto-IEEE Layout Compiler
+          Scribe — From Ideas to IEEE
         </motion.p>
 
         <motion.h1
@@ -265,7 +268,7 @@ export default function Home() {
         animate={isLeaving ? { opacity: 0 } : { opacity: 1 }}
         transition={{ duration: TRANSITION_MS / 1000, ease: EASE }}
       >
-        Auto‑IEEE Layout Compiler · Your papers stay in your browser.
+        Scribe · Your papers stay in your browser.
       </motion.footer>
     </main>
   );

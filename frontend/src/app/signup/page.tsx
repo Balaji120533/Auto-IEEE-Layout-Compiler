@@ -74,7 +74,10 @@ export default function SignupPage() {
           <BackArrowIcon />
         </Link>
 
-        <p className="mt-3 text-[15px] font-semibold tracking-tight text-[#1d1d1f]">Auto‑IEEE</p>
+        <p className="mt-3 flex items-center gap-1.5 text-[15px] font-semibold tracking-tight text-[#1d1d1f]">
+          <img src="/scribe-mark.png" alt="" className="h-6 w-6" />
+          Scribe
+        </p>
 
         <h1 className="mt-6 text-[34px] leading-tight font-semibold tracking-tight text-[#1d1d1f]">Create an account</h1>
         <p className="mt-2 text-[15px] text-[#6e6e73] leading-relaxed">Start typesetting your papers in minutes.</p>
